@@ -1,15 +1,16 @@
-////  ./dependencies/bin/mpicc -o Flouri_OpenMPI.o Flouri_OpenMPI.c
-///// ./dependencies/bin/mpirun -np 4 ./Flouri_OpenMPI.o test.FASTA 3
+////  ./dependencies/bin/mpicc -o flouri_openmpi.o flouri_openmpi.c
+///// ./dependencies/bin/mpirun -np 4 ./flouri_openmpi.o fake_reads.fasta 3
 #include "dependencies/include/mpi.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "flouri_lcp_table.h" // Changed to include table.h
+#include "flouri_lcp_table.h" // Include table.h
 
-#define MAX_STRING_LENGTH 1000000  // Increased for longer sequences
+#define MAX_STRING_LENGTH 1000000 // Maximum sequence length
 #define MAX_LINE_LENGTH 1024
 #define MAX_SEQUENCES 1000
+#define BUFFER_SIZE 1024 // To avoid strcat overflows
 
 // Structure to store FASTA sequence
 typedef struct {
@@ -32,24 +33,32 @@ int read_fasta(const char* filename, FastaSequence** sequences) {
     int current_seq_capacity = MAX_STRING_LENGTH;
 
     *sequences = (FastaSequence*)malloc(MAX_SEQUENCES * sizeof(FastaSequence));
+    if (!*sequences) {
+        printf("Error: Memory allocation failed\n");
+        fclose(file);
+        return -1;
+    }
 
     while (fgets(line, MAX_LINE_LENGTH, file)) {
-        // Remove newline
-        line[strcspn(line, "\n")] = 0;
+        line[strcspn(line, "\n")] = 0; // Remove newline
 
         if (line[0] == '>') {
-            // New sequence header
-            if (current_sequence != NULL) {
+            if (current_sequence) {
                 current_sequence[current_seq_len] = '\0';
                 (*sequences)[seq_count - 1].sequence = current_sequence;
             }
 
             (*sequences)[seq_count].header = strdup(line + 1);
             current_sequence = (char*)malloc(current_seq_capacity * sizeof(char));
+            if (!current_sequence || !(*sequences)[seq_count].header) {
+                printf("Error: Memory allocation failed\n");
+                fclose(file);
+                return -1;
+            }
+
             current_seq_len = 0;
             seq_count++;
         } else {
-            // Sequence content
             for (int i = 0; line[i]; i++) {
                 if (!isspace(line[i])) {
                     current_sequence[current_seq_len++] = line[i];
@@ -58,8 +67,7 @@ int read_fasta(const char* filename, FastaSequence** sequences) {
         }
     }
 
-    // Store last sequence
-    if (current_sequence != NULL) {
+    if (current_sequence) {
         current_sequence[current_seq_len] = '\0';
         (*sequences)[seq_count - 1].sequence = current_sequence;
     }
@@ -79,59 +87,47 @@ int main(int argc, char* argv[]) {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     if (rank == 0) {
-        // Master process reads input
         if (argc != 3) {
             printf("Usage: %s <fasta_file> <k>\n", argv[0]);
             MPI_Abort(MPI_COMM_WORLD, 1);
-            return 1;
         }
 
-        // Read FASTA file
         num_sequences = read_fasta(argv[1], &sequences);
         if (num_sequences < 0) {
-            printf("Error reading FASTA file\n");
             MPI_Abort(MPI_COMM_WORLD, 1);
-            return 1;
         }
 
         k = atoi(argv[2]);
         printf("Read %d sequences from FASTA file\n", num_sequences);
     }
 
-    // Broadcast k and number of sequences to all processes
     MPI_Bcast(&k, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&num_sequences, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-    // All processes allocate space for sequences
     if (rank != 0) {
         sequences = (FastaSequence*)malloc(num_sequences * sizeof(FastaSequence));
         for (int i = 0; i < num_sequences; i++) {
-            sequences[i].sequence = (char*)malloc(MAX_STRING_LENGTH * sizeof(char));
-            sequences[i].header = (char*)malloc(MAX_LINE_LENGTH * sizeof(char));
+            sequences[i].header = (char*)malloc(MAX_LINE_LENGTH);
+            sequences[i].sequence = (char*)malloc(MAX_STRING_LENGTH);
         }
     }
 
-    // Broadcast sequences and headers to all processes
     for (int i = 0; i < num_sequences; i++) {
-        MPI_Bcast(sequences[i].sequence, MAX_STRING_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD);
         MPI_Bcast(sequences[i].header, MAX_LINE_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD);
+        MPI_Bcast(sequences[i].sequence, MAX_STRING_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD);
     }
 
-    // Prepare to gather results
-    char* local_result = (char*)malloc(100000 * sizeof(char));
-    local_result[0] = '\0';  // Initialize as empty string
+    char* local_result = (char*)malloc(BUFFER_SIZE);
+    local_result[0] = '\0';
     char* global_result = NULL;
 
     if (rank == 0) {
-        global_result = (char*)malloc(size * 100000 * sizeof(char));
+        global_result = (char*)malloc(size * BUFFER_SIZE);
     }
 
-    // Distribute work among processes
     int total_pairs = (num_sequences * (num_sequences - 1)) / 2;
     for (int pair_idx = rank; pair_idx < total_pairs; pair_idx += size) {
-        int i = 0;
-        int j = 1;
-        int remaining = pair_idx;
+        int i = 0, j = 1, remaining = pair_idx;
         while (remaining >= num_sequences - j) {
             remaining -= (num_sequences - j);
             i++;
@@ -139,54 +135,41 @@ int main(int argc, char* argv[]) {
         }
         j += remaining;
 
-        // Compute k-LCP for this pair
         int** LCP = compute_k_LCP(sequences[i].sequence, sequences[j].sequence, k);
+        char buffer[BUFFER_SIZE];
+        snprintf(buffer, BUFFER_SIZE, "LCP Table for %s and %s:\n", sequences[i].header, sequences[j].header);
+        strncat(local_result, buffer, BUFFER_SIZE);
 
-        // Serialize result into local_result
-        char buffer[1024];
-        snprintf(buffer, sizeof(buffer), "LCP Table for %s and %s (k=%d):\n",
-                 sequences[i].header, sequences[j].header, k);
-        strcat(local_result, buffer);
-
-        int n = strlen(sequences[i].sequence);
-        int m = strlen(sequences[j].sequence);
-
-        for (int row = 0; row < n; row++) {
-            for (int col = 0; col < m; col++) {
-                snprintf(buffer, sizeof(buffer), "%d ", LCP[row][col]);
-                strcat(local_result, buffer);
+        for (int row = 0; row < strlen(sequences[i].sequence); row++) {
+            for (int col = 0; col < strlen(sequences[j].sequence); col++) {
+                snprintf(buffer, BUFFER_SIZE, "%d ", LCP[row][col]);
+                strncat(local_result, buffer, BUFFER_SIZE);
             }
-            strcat(local_result, "\n");
+            strncat(local_result, "\n", BUFFER_SIZE);
         }
-        strcat(local_result, "\n");
 
-        // Free the LCP table
-        for (int row = 0; row < n; row++) {
+        for (int row = 0; row < strlen(sequences[i].sequence); row++) {
             free(LCP[row]);
         }
         free(LCP);
     }
 
-    // Gather all results to rank 0
-    MPI_Gather(local_result, 100000, MPI_CHAR, global_result, 100000, MPI_CHAR, 0, MPI_COMM_WORLD);
+    MPI_Gather(local_result, BUFFER_SIZE, MPI_CHAR, global_result, BUFFER_SIZE, MPI_CHAR, 0, MPI_COMM_WORLD);
 
-    // Rank 0 writes to file
     if (rank == 0) {
         FILE* result_file = fopen("result.txt", "w");
         if (!result_file) {
             printf("Error opening result file\n");
             MPI_Abort(MPI_COMM_WORLD, 1);
-            return 1;
         }
 
         for (int i = 0; i < size; i++) {
-            fprintf(result_file, "%s", &global_result[i * 100000]);
+            fprintf(result_file, "%s", &global_result[i * BUFFER_SIZE]);
         }
         fclose(result_file);
         free(global_result);
     }
 
-    // Clean up
     free(local_result);
     for (int i = 0; i < num_sequences; i++) {
         free(sequences[i].sequence);

@@ -40,7 +40,7 @@ void generate_fasta_file(const char *filename, int num_reads, int read_length) {
 int main() {
     // Parameters for FASTA generation
     const char *filename = "fake_reads.fasta";
-    int num_reads = 500;
+    int num_reads = 50;
     int read_length = 20;
 
     // Generate the FASTA file
