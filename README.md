@@ -20,6 +20,10 @@ Execute the compiled program using `mpirun` with the desired number of processes
 ```bash
 ./dependencies/bin/mpirun -np 4 ./flouri_openmpi.o fake_reads.fasta 3
 ```  
+### 2. Debug runtime memory issues
+
+```valgrind --leak-check=full --track-origins=yes ./flouri_openmpi.o fake_reads.fasta 3
+```
 
 ## Notes  
 - Ensure that the paths to the `mpicc` and `mpirun` binaries in the `dependencies/bin` directory are correct.  
