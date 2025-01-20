@@ -28,4 +28,5 @@ valgrind --leak-check=full --track-origins=yes ./flouri_openmpi.o fake_reads.fas
 
 ## Notes  
 - Ensure that the paths to the `mpicc` and `mpirun` binaries in the `dependencies/bin` directory are correct.  
-- Replace `fake_reads.fasta` and `3` with your own input file and parameters, if needed.  
+- Replace `fake_reads.fasta` and `3` with your own input file and parameters, if needed.
+- Code for k-errata Trie can be found in: https://bitbucket.org/srirampc/bhavani/src/master/
