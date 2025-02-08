@@ -49,7 +49,8 @@ int minQueue(Queue* Q) {
     return min;
 }
 
-// Modified to compute k-difference LCP for all suffix pairs
+void print2DArray(int** arr, int rows, int cols);
+
 int** compute_k_LCP(const char* S1, const char* S2, int k) {
     int n = strlen(S1);
     int m = strlen(S2);
@@ -95,4 +96,85 @@ int** compute_k_LCP(const char* S1, const char* S2, int k) {
 
     return LCP;  // Return the LCP table
 }
+
+void printArray(int** arr, int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        printf("Row %d: ", i);
+        for (int j = 0; j < cols; j++) {
+            printf("%d ", arr[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+// LengthStats[L, j]
+int** compute_LengthStats(int*** LCP_i, const char** S, int m, int p, int i) {
+
+    const int li = strlen(S[i]);
+    const int L = li - p;     // Length of the longest common prefix. 1~L
+
+    // Allocate and zero-initialize the array of pointers
+    int** LengthStat = (int**)calloc(L, sizeof(int*));
+    for (int l = 1; l <= L; l++)
+        LengthStat[l - 1] = (int*)calloc(m + 1, sizeof(int));
+
+    // Initialize
+    for (int j = i; j < m; j++) {
+        const char* sj = S[j];
+        const int lj = strlen(sj);
+        for (int q = 0; q < lj; q++) {
+            const int l = LCP_i[j][p][q];
+            if (l > 0)
+                LengthStat[l - 1][j] = 1;
+        }
+    }
+
+    // Compute
+    int sum = 0;
+    for (int j = 0; j < m; j++) {
+        sum += LengthStat[L - 1][j];
+    }
+    LengthStat[L - 1][m] = sum;
+
+    for (int l = L - 1; l > 0; l--) {
+        int sum = 0;
+        for (int j = i; j < m; j++) {
+            LengthStat[l - 1][j] |= LengthStat[l][j];
+            sum += LengthStat[l - 1][j];
+        }
+        LengthStat[l - 1][m] = sum;
+    }
+
+    return LengthStat;  // Return the LCP table
+}
+
+char * Rkt_LCS(const char* S[], int m, int k, int t) {
+    for (int i = 0; i < m; i++) {
+        // anchor on S[i]
+        // compute LCP_i table
+        int*** LCP_i = (int***) malloc(m * sizeof(int**));  // but only i...m-1 has table
+        for (int j = i; j < m; j++) {
+            printf("S[%d], S[%d]\n", i, j);
+            LCP_i[j] = compute_k_LCP(S[i], S[j], k);
+            // print2DArray(LCP_i[j], strlen(S[i]), strlen(S[j]));
+        }
+
+        int li = strlen(S[i]);
+        for (int p = 0; p < li; p++) {
+            // compute_LengthStats
+            int** LengthStat = compute_LengthStats(LCP_i, S, m, p, i);
+
+            // check if LengthStat[L, m] >= t
+            for (int l = li - p; l >= t && l >= 1; l--) {  // l is at least t for the LCS.
+                if (LengthStat[l - 1][m] >= t) {
+                    printf("Qualified string found at %d: %.*s with length %d\n", p, l, S[i] + p, l);
+                    return S[i] + p;
+                }
+            }
+        }
+    }
+    return NULL;
+}
+
+
 
