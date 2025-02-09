@@ -49,6 +49,7 @@ int minQueue(Queue* Q) {
     return min;
 }
 
+// helper function 
 void print2DArray(int** arr, int rows, int cols);
 
 int** compute_k_LCP(const char* S1, const char* S2, int k) {
@@ -97,19 +98,8 @@ int** compute_k_LCP(const char* S1, const char* S2, int k) {
     return LCP;  // Return the LCP table
 }
 
-void printArray(int** arr, int rows, int cols) {
-    for (int i = 0; i < rows; i++) {
-        printf("Row %d: ", i);
-        for (int j = 0; j < cols; j++) {
-            printf("%d ", arr[i][j]);
-        }
-        printf("\n");
-    }
-}
-
 // LengthStats[L, j]
-int** compute_LengthStats(int*** LCP_i, const char** S, int m, int p, int i) {
-
+int** compute_LengthStat(int*** LCP_i, char** S, int m, int p, int i) {
     const int li = strlen(S[i]);
     const int L = li - p;     // Length of the longest common prefix. 1~L
 
@@ -148,32 +138,54 @@ int** compute_LengthStats(int*** LCP_i, const char** S, int m, int p, int i) {
     return LengthStat;  // Return the LCP table
 }
 
-char * Rkt_LCS(const char* S[], int m, int k, int t) {
+/* 
+ * Returns a new string containing a substring of 'str' starting at offset 'p' with length 'l'.
+ * If 'p' or 'l' are out of bounds, the behavior is undefined (you might add error-checking as needed).
+ */
+char * substring(const char *str, int p, int l) {
+    // Allocate memory for l characters plus the null terminator.
+    char *result = (char *)malloc(l + 1);
+    if (result == NULL) {
+        // Memory allocation failed.
+        return NULL;
+    }
+    
+    // Copy l characters starting at (str + p) into result.
+    strncpy(result, str + p, l);
+    
+    // Ensure the string is null-terminated.
+    result[l] = '\0';
+    
+    return result;
+}
+
+char * Rkt_LCS(char* S[], int m, int k, int t) {
+    int len_max = 0;
+    char * result = NULL;
     for (int i = 0; i < m; i++) {
         // anchor on S[i]
         // compute LCP_i table
         int*** LCP_i = (int***) malloc(m * sizeof(int**));  // but only i...m-1 has table
         for (int j = i; j < m; j++) {
-            printf("S[%d], S[%d]\n", i, j);
             LCP_i[j] = compute_k_LCP(S[i], S[j], k);
-            // print2DArray(LCP_i[j], strlen(S[i]), strlen(S[j]));
         }
 
         int li = strlen(S[i]);
         for (int p = 0; p < li; p++) {
-            // compute_LengthStats
-            int** LengthStat = compute_LengthStats(LCP_i, S, m, p, i);
+            // compute_LengthStat
+            int** LengthStat = compute_LengthStat(LCP_i, S, m, p, i);
 
             // check if LengthStat[L, m] >= t
-            for (int l = li - p; l >= t && l >= 1; l--) {  // l is at least t for the LCS.
-                if (LengthStat[l - 1][m] >= t) {
-                    printf("Qualified string found at %d: %.*s with length %d\n", p, l, S[i] + p, l);
-                    return S[i] + p;
+            for (int l = li - p; l >= 1; l--) {  
+                if (LengthStat[l - 1][m] >= t && l > len_max) {
+                    // printf("Qualified string found at %d: %.*s with length %d\n", p, l, S[i] + p, l);
+                    len_max = l;
+                    result = substring(S[i], p, l);
                 }
             }
         }
     }
-    return NULL;
+    return result;
 }
 
 
