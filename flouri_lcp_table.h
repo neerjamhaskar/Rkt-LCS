@@ -2,7 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Queue structure and operations remain the same
+/*** Helper DS and functions ***/
+/*---------------------------------------------------------*/
+
+// Helper DS: Queue
+//
+// Queue structure and operations
 typedef struct {
     int* elements;
     int capacity;
@@ -49,77 +54,205 @@ int minQueue(Queue* Q) {
     return min;
 }
 
-// helper function 
-void print2DArray(int** arr, int rows, int cols);
+// Helper function: print2DArray
+//
+// Prints a 2D integer array with the specified number of rows and columns.
+void print2DArray(int** arr, int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        printf("Row %d: ", i);
+        for (int j = 0; j < cols; j++) {
+            printf("%d ", arr[i][j]);
+        }
+        printf("\n");
+    }
+}
 
+// Helper function: printArray
+//
+// Prints an integer array with the specified number of items.
+void printArray(int* arr, int n) {
+    for (int i = 0; i < n; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+}
+
+// Helper function: substring
+//
+// Returns a newly allocated substring of 'str' starting at offset p with length l.
+char * substring(const char *str, int p, int l) {
+    char *result = (char *)malloc(l + 1);
+    if (!result) return NULL;
+    strncpy(result, str + p, l);
+    result[l] = '\0';
+    return result;
+}
+
+// Helper function: free2DArray
+//
+// Frees a 2D array that was allocated using dynamically.
+void free2DArray(int** arr, int rows) {
+    for (int i = 0; i < rows; i++) {
+        free(arr[i]);
+    }
+    free(arr);
+}
+
+/*** End of helper functions ***/
+//---------------------------------------------------------
+
+
+
+
+
+
+
+
+/***  Main functions  ***/
+/*---------------------------------------------------------*/
+
+// compute_k_LCP
+//
+// Computes a longest-common-prefix (LCP) table between S1 and S2,
+// allowing up to k mismatches. The LCP table is of size
+// strlen(S1) x strlen(S2). A temporary queue is used to record mismatch positions.
 int** compute_k_LCP(const char* S1, const char* S2, int k) {
     int n = strlen(S1);
     int m = strlen(S2);
 
-    // Allocate and initialize LCP table
+    // Allocate LCP table: n rows, each with m integers.
     int** LCP = (int**)malloc(n * sizeof(int*));
+    if (!LCP) {
+        fprintf(stderr, "Memory allocation failed for LCP table\n");
+        exit(EXIT_FAILURE);
+    }
     for (int i = 0; i < n; i++) {
         LCP[i] = (int*)malloc(m * sizeof(int));
+        if (!LCP[i]) {
+            fprintf(stderr, "Memory allocation failed for LCP[%d]\n", i);
+            for (int j = 0; j < i; j++) free(LCP[j]);
+            free(LCP);
+            exit(EXIT_FAILURE);
+        }
     }
 
+    // Create a queue to track mismatch positions (capacity = k)
     Queue* Q = createQueue(k);
 
-    // Compute LCP for each suffix pair
+    // For each pair of starting positions in S1 and S2:
     for (int start1 = 0; start1 < n; start1++) {
         for (int start2 = 0; start2 < m; start2++) {
-            // Clear queue
-            while (Q->size > 0) {
-                dequeue(Q);
-            }
+            /* Reset the queue quickly instead of dequeueing each element */
+            Q->size = 0;
+            Q->front = 0;
+            Q->rear = -1;
 
-            int p = 0;
-            int max_length = 0;
-
-            // Compare characters and count mismatches
+            int p = 0, max_length = 0;
             while ((start1 + p < n) && (start2 + p < m)) {
                 if (S1[start1 + p] != S2[start2 + p]) {
                     if (Q->size == k) {
-                        break;  // Stop when we exceed k mismatches
+                        break;  // Exceeded allowed mismatches.
                     }
                     enqueue(Q, p);
                 }
                 p++;
                 max_length = p;
             }
-
             LCP[start1][start2] = max_length;
         }
     }
 
-    // Clean up
     free(Q->elements);
     free(Q);
-
-    return LCP;  // Return the LCP table
+    return LCP;
 }
 
-// LengthStats[L, j]
-int** compute_LengthStat(int*** LCP_i, char** S, int m, int p, int i) {
+// compute_k_LCP (memory improved)
+//
+// Computes a longest-common-prefix (LCP) array between S1 and S2,
+// allowing up to k mismatches. The LCP table is of size
+// strlen(S1) where for each position in S1, only the longest length is stored. 
+// A temporary queue is used to record mismatch positions.
+int* compute_k_LCP_max(const char* S1, const char* S2, int k) {
+    int n = strlen(S1);
+    int m = strlen(S2);
+
+    // Allocate LCP table: n rows, each with m integers.
+    int* LCP = (int*)malloc(n * sizeof(int));
+    if (!LCP) {
+        fprintf(stderr, "Memory allocation failed for LCP table\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Create a queue to track mismatch positions (capacity = k)
+    Queue* Q = createQueue(k);
+
+    // For each pair of starting positions in S1 and S2:
+    for (int start1 = 0; start1 < n; start1++) {
+        int longest = 0;
+        for (int start2 = 0; start2 < m; start2++) {
+            /* Reset the queue quickly instead of dequeueing each element */
+            Q->size = 0;
+            Q->front = 0;
+            Q->rear = -1;
+
+            int p = 0, max_length = 0;
+            while ((start1 + p < n) && (start2 + p < m)) {
+                if (S1[start1 + p] != S2[start2 + p]) {
+                    if (Q->size == k) {
+                        break;  // Exceeded allowed mismatches.
+                    }
+                    enqueue(Q, p);
+                }
+                p++;
+                max_length = p;
+            }
+            if (max_length > longest) {
+                longest = max_length;
+            }
+        }
+        LCP[start1] = longest;
+    }
+
+    free(Q->elements);
+    free(Q);
+    return LCP;
+}
+
+// compute_LengthStat
+//
+// Given a 2D LCP_i array (for strings j from i to m-1) and the array S,
+// this function computes a LengthStat table for S[i] starting at offset p.
+// The table has L rows (where L = strlen(S[i]) - p) and (m+1) columns;
+// the last column is used to store cumulative sums.
+int** compute_LengthStat(int** LCP_i, char** S, int m, int p, int i) {
     const int li = strlen(S[i]);
-    const int L = li - p;     // Length of the longest common prefix. 1~L
+    const int L = li - p;     // Maximum possible length for a substring from S[i] starting at p.
 
-    // Allocate and zero-initialize the array of pointers
+    // Allocate a table of L rows and (m+1) columns; initialize to zero.
     int** LengthStat = (int**)calloc(L, sizeof(int*));
-    for (int l = 1; l <= L; l++)
+    if (!LengthStat) {
+        fprintf(stderr, "Memory allocation failed for LengthStat\n");
+        exit(EXIT_FAILURE);
+    }
+    for (int l = 1; l <= L; l++) {
         LengthStat[l - 1] = (int*)calloc(m + 1, sizeof(int));
-
-    // Initialize
-    for (int j = i; j < m; j++) {
-        const char* sj = S[j];
-        const int lj = strlen(sj);
-        for (int q = 0; q < lj; q++) {
-            const int l = LCP_i[j][p][q];
-            if (l > 0)
-                LengthStat[l - 1][j] = 1;
+        if (!LengthStat[l - 1]) {
+            fprintf(stderr, "Memory allocation failed for LengthStat row %d\n", l - 1);
+            for (int j = 0; j < l - 1; j++) free(LengthStat[j]);
+            free(LengthStat);
+            exit(EXIT_FAILURE);
         }
     }
 
-    // Compute
+    // Initialization: for j from i to m-1, mark positions where LCP_i indicates a match.
+    for (int j = i; j < m; j++) {
+        const int l = LCP_i[j - i][p];
+        if (l > 0)
+            LengthStat[l - 1][j] = 1;
+    }
+
+    // Compute cumulative sums in the last column.
     int sum = 0;
     for (int j = 0; j < m; j++) {
         sum += LengthStat[L - 1][j];
@@ -138,55 +271,57 @@ int** compute_LengthStat(int*** LCP_i, char** S, int m, int p, int i) {
     return LengthStat;  // Return the LCP table
 }
 
-/* 
- * Returns a new string containing a substring of 'str' starting at offset 'p' with length 'l'.
- * If 'p' or 'l' are out of bounds, the behavior is undefined (you might add error-checking as needed).
- */
-char * substring(const char *str, int p, int l) {
-    // Allocate memory for l characters plus the null terminator.
-    char *result = (char *)malloc(l + 1);
-    if (result == NULL) {
-        // Memory allocation failed.
-        return NULL;
-    }
-    
-    // Copy l characters starting at (str + p) into result.
-    strncpy(result, str + p, l);
-    
-    // Ensure the string is null-terminated.
-    result[l] = '\0';
-    
-    return result;
-}
-
+// Rkt_LCS 
+//
+// For an array S of m strings, this function anchors on each S[i] and computes
+// a longest common substring (LCS) among the strings (allowing up to k mismatches)
+// that occurs in at least t strings. It returns a newly allocated substring.
 char * Rkt_LCS(char* S[], int m, int k, int t) {
     int len_max = 0;
     char * result = NULL;
+
+    // for each string S[i]
     for (int i = 0; i < m; i++) {
-        // anchor on S[i]
-        // compute LCP_i table
-        int*** LCP_i = (int***) malloc(m * sizeof(int**));  // but only i...m-1 has table
+        int li = strlen(S[i]);
+        // Allocate LCP_i for strings j from i to m-1.
+        const int numTables = m - i;
+        int** LCP_i = (int**)malloc(numTables * sizeof(int*));
+        if (!LCP_i) {
+            fprintf(stderr, "Memory allocation failed for LCP_i\n");
+            exit(EXIT_FAILURE);
+        }
         for (int j = i; j < m; j++) {
-            LCP_i[j] = compute_k_LCP(S[i], S[j], k);
+            LCP_i[j - i] = compute_k_LCP_max(S[i], S[j], k);
         }
 
-        int li = strlen(S[i]);
+        // For each possible starting position p in S[i]:
         for (int p = 0; p < li; p++) {
-            // compute_LengthStat
             int** LengthStat = compute_LengthStat(LCP_i, S, m, p, i);
+            int L = li - p;  // Maximum possible substring length from S[i] starting at p.
 
-            // check if LengthStat[L, m] >= t
-            for (int l = li - p; l >= 1; l--) {  
+            // Check for each candidate length (from longest down to 1)
+            for (int l = L; l >= 1; l--) {  
                 if (LengthStat[l - 1][m] >= t && l > len_max) {
-                    // printf("Qualified string found at %d: %.*s with length %d\n", p, l, S[i] + p, l);
+                    if (result != NULL)
+                        free(result);
                     len_max = l;
                     result = substring(S[i], p, l);
                 }
             }
+
+            // Free the LengthStat table.
+            free2DArray(LengthStat, L);
         }
+
+        // Free each LCP table.
+        free2DArray(LCP_i, numTables);
     }
+
     return result;
 }
+
+/*** End of main functions ***/
+/*---------------------------------------------------------*/
 
 
 

@@ -6,37 +6,6 @@
 #include "flouri_lcp_table.h" // Include table.h
 
 
-//---------------------------------------------------------
-// Helper function: print2DArray
-//
-// Prints a 2D integer array with the specified number of rows and columns.
-// Uses C's printf function.
-//
-void print2DArray(int** arr, int rows, int cols) {
-    for (int i = 0; i < rows; i++) {
-        printf("Row %d: ", i);
-        for (int j = 0; j < cols; j++) {
-            printf("%d ", arr[i][j]);
-        }
-        printf("\n");
-    }
-}
-
-
-
-//---------------------------------------------------------
-// Helper function: free2DArray
-//
-// Frees a 2D array that was allocated using new[]. 
-//
-void free2DArray(int** arr, int rows) {
-    for (int i = 0; i < rows; i++) {
-        free(arr[i]);
-    }
-    free(arr);
-}
-
-
 void test_LCP(const char* s1, const char* s2, int k) {
     int l1 = strlen(s1), l2 = strlen(s2);
     printf("Comparing LCP s1 = \"%s\" with s2 = \"%s\" k = \"%d\"\n", s1, s2, k);
@@ -46,9 +15,11 @@ void test_LCP(const char* s1, const char* s2, int k) {
 }
 
 void test_LengthStat(char* S[], int m, int k, int i, int p) {
-    int*** LCP_i = (int***) malloc((m - 1) * sizeof(int**));
-    for (int j = 0; j < m; j++) {
-        LCP_i[j] = compute_k_LCP(S[i], S[j], k);
+    int** LCP_i = (int**) malloc((m - 1) * sizeof(int*));
+    for (int j = i; j < m; j++) {
+        LCP_i[j - i] = compute_k_LCP_max(S[i], S[j], k);
+        printf("\n=== LCP_i[%d] ===\n", j);
+        printArray(LCP_i[j - i], strlen(S[j]));
     }
     
     // Call compute_LengthStats.
@@ -94,7 +65,7 @@ int main() {
     // Rkt_LCS(S2, 3, 1, 3);
 
     /* --------------------------- */
-    /* Test 3: Using S2            */
+    /* Test 2: Using S2            */
     /* --------------------------- */
     {
         char* S2[] = {"TTGAC", "CGAAAT", "TGGTA"};
@@ -154,6 +125,20 @@ int main() {
         char *expected = NULL;
         
         check_result("Test 5", result, expected);
+    }
+
+    /* --------------------------- */
+    /* Test 6*/
+    /* --------------------------- */
+    {
+        char* S6[] = {"aaaaa", "bbbbb", "ccccc", "ddcdd"};
+        int m = 4;
+        int k = 2;
+        int t = 2;
+        
+        char *result = Rkt_LCS(S6, m, k, t);
+        char *expected = "ccc";
+        check_result("Test 6", result, expected);
     }
 
     return 0;
