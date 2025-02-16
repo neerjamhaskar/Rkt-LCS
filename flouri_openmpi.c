@@ -78,16 +78,16 @@ int read_fasta(const char* filename, FastaSequence** sequences) {
 
 // Parallel version of Rkt_LCS using OpenMPI.
 // Parallelization is done by distributing the work over the sequences S[0]..S[m-1].
-char * Rkt_LCS_MPI(char* S[], int m, int k, int t) {
-    int MAX_RESULT_LEN = 1024;
+int * Rkt_LCS_MPI(char* S[], int m, int k, int t) {
     int rank, size;
+
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     // Each process will compute a local best candidate.
     int local_len_max = 0;
-    char local_candidate[MAX_RESULT_LEN];
-    local_candidate[0] = '\0';
+    int local_start_index = -1;
+    int local_pivot_index = -1;
 
     // Distribute the work over S[0]..S[m-1]:
     // Each process takes i values where i % size == rank.
@@ -111,12 +111,9 @@ char * Rkt_LCS_MPI(char* S[], int m, int k, int t) {
             // Check candidate lengths from longest to shortest.
             for (int l = L; l >= 1; l--) {  
                 if (LengthStat[l - 1][m] >= t && l > local_len_max) {
+                    local_start_index = p;
+                    local_pivot_index = i;
                     local_len_max = l;
-                    // Free any previous candidate if needed, then update our local candidate.
-                    char *temp = substring(S[i], p, l);
-                    strncpy(local_candidate, temp, MAX_RESULT_LEN);
-                    local_candidate[MAX_RESULT_LEN - 1] = '\0';
-                    free(temp);
                 }
             }
             free2DArray((int **)LengthStat, L);
@@ -124,17 +121,21 @@ char * Rkt_LCS_MPI(char* S[], int m, int k, int t) {
         free2DArray((int **)LCP_i, numTables);
     }
     
-    // Now we have each process's best candidate (local_candidate) and its length (local_len_max).
     // We use MPI_Allreduce to find the maximum candidate length overall.
     int global_len_max = 0;
     MPI_Allreduce(&local_len_max, &global_len_max, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-    
-    // Next, each process will send its candidate string (a fixed MAX_RESULT_LEN characters)
-    // to rank 0. Even processes with no candidate (local_len_max == 0) send an empty string.
-    char gathered_candidates[size * MAX_RESULT_LEN];
-    MPI_Gather(local_candidate, MAX_RESULT_LEN, MPI_CHAR,
-               gathered_candidates, MAX_RESULT_LEN, MPI_CHAR,
-               0, MPI_COMM_WORLD);
+                
+    // Also gather the candidate start index.
+    int gathered_starts[size];
+    MPI_Gather(&local_start_index, 1, MPI_INT,
+                gathered_starts, 1, MPI_INT,
+                0, MPI_COMM_WORLD);
+
+    // Also gather the pivot index.
+    int gathered_pivot_index[size];
+    MPI_Gather(&local_pivot_index, 1, MPI_INT,
+                gathered_pivot_index, 1, MPI_INT,
+                0, MPI_COMM_WORLD);
     
     // Also gather the candidate lengths.
     int gathered_lengths[size];
@@ -142,33 +143,21 @@ char * Rkt_LCS_MPI(char* S[], int m, int k, int t) {
                gathered_lengths, 1, MPI_INT,
                0, MPI_COMM_WORLD);
     
-    char *result = NULL;
+    // result: index i of pivot string, start index p in pivot string
+    int* result = (int*)malloc(3 * sizeof(int));
     if (rank == 0) {
         // Rank 0 selects the candidate whose length equals global_len_max.
         // (If more than one candidate qualifies, we choose the first one.)
         for (int i = 0; i < size; i++) {
             if (gathered_lengths[i] == global_len_max && global_len_max > 0) {
-                result = strdup(&gathered_candidates[i * MAX_RESULT_LEN]);
+                result[0] = gathered_pivot_index[i];
+                result[1] = gathered_starts[i];
                 break;
             }
         }
         // If no candidate was found, result remains NULL.
     }
-    
-    // // Optionally, broadcast the result to all processes.
-    // // (If you only need the result on rank 0, you can omit this.)
-    // int result_exists = (result != NULL) ? 1 : 0;
-    // MPI_Bcast(&result_exists, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    // if (result_exists) {
-    //     char result_buffer[MAX_RESULT_LEN];
-    //     if (rank == 0) {
-    //         strncpy(result_buffer, result, MAX_RESULT_LEN);
-    //     }
-    //     MPI_Bcast(result_buffer, MAX_RESULT_LEN, MPI_CHAR, 0, MPI_COMM_WORLD);
-    //     if (rank != 0) {
-    //         result = strdup(result_buffer);
-    //     }
-    // }
+    result[2] = global_len_max;
     
     return result;  // Only rank 0’s result is considered authoritative.
 }
@@ -240,12 +229,18 @@ int main(int argc, char* argv[]) {
 
     // Call the MPI-parallelized longest common substring function.
     // This function will run in parallel over all processes and return the best candidate.
-    char* lcs_result = Rkt_LCS_MPI(S_array, num_sequences, k, t);
+    int* lcs_result = Rkt_LCS_MPI(S_array, num_sequences, k, t);
 
     // Rank 0 prints the result.
     if (rank == 0) {
-        if (lcs_result != NULL) {
-            printf("Best LCS: %s\n", lcs_result);
+        if (lcs_result != NULL && lcs_result[2] > 0) {
+            int pivot_index = lcs_result[0];
+            int start_index = lcs_result[1];
+            int length = lcs_result[2];
+            printf("Best Rk-tLCS is in string %d, starting at index %d: %s\n", 
+                lcs_result[0], 
+                lcs_result[1], 
+                substring(S_array[pivot_index], start_index, length));
             free(lcs_result);
         } else {
             printf("No valid LCS found.\n");
