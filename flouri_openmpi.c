@@ -16,64 +16,6 @@ typedef struct {
     char* sequence;
 } FastaSequence;
 
-// Function to read FASTA file
-int read_fake_fasta(const char* filename, FastaSequence** sequences) {
-    FILE* file = fopen(filename, "r");
-    if (!file) {
-        printf("Error opening file: %s\n", filename);
-        return -1;
-    }
-
-    char line[MAX_LINE_LENGTH];
-    int seq_count = 0;
-    char* current_sequence = NULL;
-    int current_seq_len = 0;
-    int current_seq_capacity = MAX_STRING_LENGTH;
-
-    *sequences = (FastaSequence*)malloc(MAX_SEQUENCES * sizeof(FastaSequence));
-    if (!*sequences) {
-        printf("Error: Memory allocation failed\n");
-        fclose(file);
-        return -1;
-    }
-
-    while (fgets(line, MAX_LINE_LENGTH, file)) {
-        line[strcspn(line, "\n")] = 0; // Remove newline
-
-        if (line[0] == '>') {
-            if (current_sequence) {
-                current_sequence[current_seq_len] = '\0';
-                (*sequences)[seq_count - 1].sequence = current_sequence;
-            }
-
-            (*sequences)[seq_count].header = strdup(line + 1);
-            current_sequence = (char*)malloc(current_seq_capacity * sizeof(char));
-            if (!current_sequence || !(*sequences)[seq_count].header) {
-                printf("Error: Memory allocation failed\n");
-                fclose(file);
-                return -1;
-            }
-
-            current_seq_len = 0;
-            seq_count++;
-        } else {
-            for (int i = 0; line[i]; i++) {
-                if (!isspace(line[i])) {
-                    current_sequence[current_seq_len++] = line[i];
-                }
-            }
-        }
-    }
-
-    if (current_sequence) {
-        current_sequence[current_seq_len] = '\0';
-        (*sequences)[seq_count - 1].sequence = current_sequence;
-    }
-
-    fclose(file);
-    return seq_count;
-}
-
 // Parallel version of Rkt_LCS using OpenMPI.
 // Parallelization is done by distributing the work over the sequences S[0]..S[m-1].
 int * Rkt_LCS_MPI(char* S[], int m, int k, int t, int tau) {
@@ -209,6 +151,8 @@ int read_fasta(const char* filename, FastaSequence** sequences) {
     fclose(file);
     return seq_count;
 }
+
+
 
 // Main function that reads a FASTA file and calls Rkt_LCS_MPI.
 int main(int argc, char* argv[]) {
