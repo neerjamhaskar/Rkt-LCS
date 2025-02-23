@@ -1,5 +1,3 @@
-////  ./dependencies/bin/mpicc -o flouri_openmpi.o flouri_openmpi.c
-///// ./dependencies/bin/mpirun -np 4 ./flouri_openmpi.o fake_reads.fasta 3
 #include "dependencies/include/mpi.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +17,7 @@ typedef struct {
 } FastaSequence;
 
 // Function to read FASTA file
-int read_fasta(const char* filename, FastaSequence** sequences) {
+int read_fake_fasta(const char* filename, FastaSequence** sequences) {
     FILE* file = fopen(filename, "r");
     if (!file) {
         printf("Error opening file: %s\n", filename);
@@ -162,6 +160,54 @@ int * Rkt_LCS_MPI(char* S[], int m, int k, int t) {
     return result;  // Only rank 0’s result is considered authoritative.
 }
 
+// Function to read a FASTQ-like file where only the (4k+2) header and (4k+3) sequence lines are used.
+int read_fasta(const char* filename, FastaSequence** sequences) {
+    FILE* file = fopen(filename, "r");
+    if (!file) {
+        fprintf(stderr, "Error opening file: %s\n", filename);
+        return -1;
+    }
+
+    char line[MAX_LINE_LENGTH];
+    int seq_count = 0;
+    int line_num = 0;
+
+    // Allocate array for sequences
+    *sequences = (FastaSequence*)malloc(MAX_SEQUENCES * sizeof(FastaSequence));
+    if (!*sequences) {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        fclose(file);
+        return -1;
+    }
+
+    while (fgets(line, MAX_LINE_LENGTH, file)) {
+        line[strcspn(line, "\n")] = '\0';  // Remove newline
+
+        if (line_num % 4 == 1) {
+            // This is a header line (4k+2 when counting from 1)
+            (*sequences)[seq_count].header = strdup(line);
+            if (!(*sequences)[seq_count].header) {
+                fprintf(stderr, "Error: Memory allocation failed\n");
+                fclose(file);
+                return -1;
+            }
+        } else if (line_num % 4 == 2) {
+            // This is the sequence line (4k+3 when counting from 1)
+            (*sequences)[seq_count].sequence = strdup(line);
+            if (!(*sequences)[seq_count].sequence) {
+                fprintf(stderr, "Error: Memory allocation failed\n");
+                fclose(file);
+                return -1;
+            }
+            seq_count++; // Increment count after both header and sequence have been read.
+        }
+        // Lines where (line_num % 4 == 0) or (line_num % 4 == 3) are ignored.
+        line_num++;
+    }
+
+    fclose(file);
+    return seq_count;
+}
 
 // Main function that reads a FASTA file and calls Rkt_LCS_MPI.
 int main(int argc, char* argv[]) {
