@@ -9,8 +9,11 @@
 
 #define MAX_STRING_LENGTH 1000000 // Maximum sequence length
 #define MAX_LINE_LENGTH 1024
-#define MAX_SEQUENCES 1000
-#define BUFFER_SIZE 1024 // To avoid strcat overflows
+#define MAX_SEQUENCES 10000 // Increased to handle larger datasets
+#define BUFFER_SIZE (1024 * 1024) // 1MB buffer
+#define MAX_RESULT_SIZE (BUFFER_SIZE * 32) // Maximum size for global result
+#define CHUNK_SIZE 50 // Reduced chunk size for better work distribution
+#define MAX_PAIRS_PER_CHUNK 1000 // Maximum number of pairs to process in each batch
 
 // Structure to store FASTA sequence
 typedef struct {
@@ -99,83 +102,240 @@ int main(int argc, char* argv[]) {
 
         k = atoi(argv[2]);
         printf("Read %d sequences from FASTA file\n", num_sequences);
+        printf("Total pairs to process: %lld\n", (long long)num_sequences * (num_sequences - 1) / 2);
     }
 
     MPI_Bcast(&k, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&num_sequences, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-    if (rank != 0) {
-        sequences = (FastaSequence*)malloc(num_sequences * sizeof(FastaSequence));
-        for (int i = 0; i < num_sequences; i++) {
-            sequences[i].header = (char*)malloc(MAX_LINE_LENGTH);
-            sequences[i].sequence = (char*)malloc(MAX_STRING_LENGTH);
-        }
+    // Process sequences in chunks to manage memory better
+    int num_chunks = (num_sequences + CHUNK_SIZE - 1) / CHUNK_SIZE;
+    printf("Rank %d: Processing %d chunks\n", rank, num_chunks);
+
+    // Allocate memory for two chunks (current and target)
+    FastaSequence* current_chunk = (FastaSequence*)malloc(CHUNK_SIZE * sizeof(FastaSequence));
+    FastaSequence* target_chunk = (FastaSequence*)malloc(CHUNK_SIZE * sizeof(FastaSequence));
+    
+    if (!current_chunk || !target_chunk) {
+        printf("Rank %d: Failed to allocate chunk arrays\n", rank);
+        MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    for (int i = 0; i < num_sequences; i++) {
-        MPI_Bcast(sequences[i].header, MAX_LINE_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD);
-        MPI_Bcast(sequences[i].sequence, MAX_STRING_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD);
-    }
-
-    char* local_result = (char*)malloc(BUFFER_SIZE);
-    local_result[0] = '\0';
-    char* global_result = NULL;
-
-    if (rank == 0) {
-        global_result = (char*)malloc(size * BUFFER_SIZE);
-    }
-
-    int total_pairs = (num_sequences * (num_sequences - 1)) / 2;
-    for (int pair_idx = rank; pair_idx < total_pairs; pair_idx += size) {
-        int i = 0, j = 1, remaining = pair_idx;
-        while (remaining >= num_sequences - j) {
-            remaining -= (num_sequences - j);
-            i++;
-            j = i + 1;
-        }
-        j += remaining;
-
-        int** LCP = compute_k_LCP(sequences[i].sequence, sequences[j].sequence, k);
-        char buffer[BUFFER_SIZE];
-        snprintf(buffer, BUFFER_SIZE, "LCP Table for %s and %s:\n", sequences[i].header, sequences[j].header);
-        strncat(local_result, buffer, BUFFER_SIZE);
-
-        for (int row = 0; row < strlen(sequences[i].sequence); row++) {
-            for (int col = 0; col < strlen(sequences[j].sequence); col++) {
-                snprintf(buffer, BUFFER_SIZE, "%d ", LCP[row][col]);
-                strncat(local_result, buffer, BUFFER_SIZE);
-            }
-            strncat(local_result, "\n", BUFFER_SIZE);
-        }
-
-        for (int row = 0; row < strlen(sequences[i].sequence); row++) {
-            free(LCP[row]);
-        }
-        free(LCP);
-    }
-
-    MPI_Gather(local_result, BUFFER_SIZE, MPI_CHAR, global_result, BUFFER_SIZE, MPI_CHAR, 0, MPI_COMM_WORLD);
-
-    if (rank == 0) {
-        FILE* result_file = fopen("result.txt", "w");
-        if (!result_file) {
-            printf("Error opening result file\n");
+    // Initialize chunks
+    for (int i = 0; i < CHUNK_SIZE; i++) {
+        current_chunk[i].header = (char*)malloc(MAX_LINE_LENGTH);
+        current_chunk[i].sequence = (char*)malloc(MAX_STRING_LENGTH);
+        target_chunk[i].header = (char*)malloc(MAX_LINE_LENGTH);
+        target_chunk[i].sequence = (char*)malloc(MAX_STRING_LENGTH);
+        
+        if (!current_chunk[i].header || !current_chunk[i].sequence ||
+            !target_chunk[i].header || !target_chunk[i].sequence) {
+            printf("Rank %d: Failed to allocate sequence memory\n", rank);
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
+    }
 
-        for (int i = 0; i < size; i++) {
-            fprintf(result_file, "%s", &global_result[i * BUFFER_SIZE]);
+    // Allocate and initialize local result buffer
+    char* local_result = (char*)calloc(BUFFER_SIZE, sizeof(char));
+    if (!local_result) {
+        printf("Rank %d: Failed to allocate local_result\n", rank);
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+    local_result[0] = '\0';
+
+    char* global_result = NULL;
+    if (rank == 0) {
+        global_result = (char*)calloc(MAX_RESULT_SIZE, sizeof(char));
+        if (!global_result) {
+            printf("Rank 0: Failed to allocate global_result\n");
+            MPI_Abort(MPI_COMM_WORLD, 1);
         }
-        fclose(result_file);
+    }
+
+    size_t current_pos = 0;
+    long long total_pairs_processed = 0;
+
+    // Process all pairs between chunks
+    for (int i_chunk = 0; i_chunk < num_chunks; i_chunk++) {
+        int i_start = i_chunk * CHUNK_SIZE;
+        int i_end = (i_chunk + 1) * CHUNK_SIZE;
+        if (i_end > num_sequences) i_end = num_sequences;
+        int i_chunk_size = i_end - i_start;
+
+        if (rank == 0) {
+            printf("Processing chunk %d/%d (sequences %d to %d)\n", 
+                   i_chunk + 1, num_chunks, i_start, i_end - 1);
+        }
+
+        // Load current chunk
+        if (rank == 0) {
+            for (int i = 0; i < i_chunk_size; i++) {
+                strcpy(current_chunk[i].header, sequences[i_start + i].header);
+                strcpy(current_chunk[i].sequence, sequences[i_start + i].sequence);
+            }
+        }
+
+        // Broadcast current chunk to all processes
+        for (int i = 0; i < i_chunk_size; i++) {
+            MPI_Bcast(current_chunk[i].header, MAX_LINE_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD);
+            MPI_Bcast(current_chunk[i].sequence, MAX_STRING_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD);
+        }
+
+        // Process pairs with all subsequent chunks
+        for (int j_chunk = i_chunk; j_chunk < num_chunks; j_chunk++) {
+            int j_start = j_chunk * CHUNK_SIZE;
+            int j_end = (j_chunk + 1) * CHUNK_SIZE;
+            if (j_end > num_sequences) j_end = num_sequences;
+            int j_chunk_size = j_end - j_start;
+
+            // Load target chunk
+            if (rank == 0) {
+                for (int j = 0; j < j_chunk_size; j++) {
+                    strcpy(target_chunk[j].header, sequences[j_start + j].header);
+                    strcpy(target_chunk[j].sequence, sequences[j_start + j].sequence);
+                }
+            }
+
+            // Broadcast target chunk to all processes
+            for (int j = 0; j < j_chunk_size; j++) {
+                MPI_Bcast(target_chunk[j].header, MAX_LINE_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD);
+                MPI_Bcast(target_chunk[j].sequence, MAX_STRING_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD);
+            }
+
+            // Calculate pairs for this chunk combination
+            int total_pairs;
+            if (i_chunk == j_chunk) {
+                // Within same chunk: compute pairs (n choose 2)
+                total_pairs = (i_chunk_size * (i_chunk_size - 1)) / 2;
+            } else {
+                // Between different chunks: compute all pairs
+                total_pairs = i_chunk_size * j_chunk_size;
+            }
+
+            // Distribute work among processes
+            int pairs_per_process = (total_pairs + size - 1) / size;
+            int my_start = rank * pairs_per_process;
+            int my_end = (rank + 1) * pairs_per_process;
+            if (my_end > total_pairs) my_end = total_pairs;
+
+            if (rank == 0) {
+                printf("Processing %d pairs between chunks %d and %d\n", total_pairs, i_chunk, j_chunk);
+            }
+
+            // Process pairs in smaller batches
+            for (int batch_start = my_start; batch_start < my_end; batch_start += MAX_PAIRS_PER_CHUNK) {
+                int batch_end = batch_start + MAX_PAIRS_PER_CHUNK;
+                if (batch_end > my_end) batch_end = my_end;
+
+                for (int pair_idx = batch_start; pair_idx < batch_end; pair_idx++) {
+                    int i, j;
+                    if (i_chunk == j_chunk) {
+                        // Within same chunk: use triangular number formula
+                        i = 0;
+                        j = 1;
+                        int remaining = pair_idx;
+                        while (remaining >= i_chunk_size - j) {
+                            remaining -= (i_chunk_size - j);
+                            i++;
+                            j = i + 1;
+                        }
+                        j += remaining;
+                    } else {
+                        // Between different chunks: use division and modulo
+                        i = pair_idx / j_chunk_size;
+                        j = pair_idx % j_chunk_size;
+                    }
+
+                    int** LCP = compute_k_LCP(current_chunk[i].sequence, target_chunk[j].sequence, k);
+                    if (!LCP) {
+                        printf("Rank %d: Failed to compute LCP for pair %d-%d\n", rank, i_start + i, j_start + j);
+                        continue;
+                    }
+
+                    char buffer[BUFFER_SIZE];
+                    int written = snprintf(buffer, BUFFER_SIZE, "LCP Table for %s and %s:\n", 
+                                         current_chunk[i].header, target_chunk[j].header);
+                    if (written > 0 && current_pos + written < BUFFER_SIZE) {
+                        strcat(local_result + current_pos, buffer);
+                        current_pos += written;
+                    }
+
+                    for (int row = 0; row < strlen(current_chunk[i].sequence); row++) {
+                        for (int col = 0; col < strlen(target_chunk[j].sequence); col++) {
+                            written = snprintf(buffer, BUFFER_SIZE, "%d ", LCP[row][col]);
+                            if (written > 0 && current_pos + written < BUFFER_SIZE) {
+                                strcat(local_result + current_pos, buffer);
+                                current_pos += written;
+                            }
+                        }
+                        if (current_pos + 1 < BUFFER_SIZE) {
+                            strcat(local_result + current_pos, "\n");
+                            current_pos++;
+                        }
+                    }
+
+                    // Free LCP table
+                    for (int row = 0; row < strlen(current_chunk[i].sequence); row++) {
+                        free(LCP[row]);
+                    }
+                    free(LCP);
+
+                    total_pairs_processed++;
+                    if (rank == 0 && total_pairs_processed % 1000 == 0) {
+                        printf("Processed %lld pairs\n", total_pairs_processed);
+                    }
+                }
+
+                // Gather results for this batch
+                MPI_Gather(local_result, BUFFER_SIZE, MPI_CHAR, 
+                          global_result, BUFFER_SIZE, MPI_CHAR, 0, MPI_COMM_WORLD);
+
+                if (rank == 0) {
+                    FILE* result_file = fopen("result.txt", "a");
+                    if (!result_file) {
+                        printf("Error opening result file\n");
+                        MPI_Abort(MPI_COMM_WORLD, 1);
+                    }
+
+                    fprintf(result_file, "%s", global_result);
+                    fclose(result_file);
+                }
+
+                // Reset local result buffer for next batch
+                memset(local_result, 0, BUFFER_SIZE);
+                current_pos = 0;
+            }
+        }
+    }
+
+    // Sum up total pairs processed across all processes
+    long long global_total_pairs;
+    MPI_Reduce(&total_pairs_processed, &global_total_pairs, 1, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    if (rank == 0) {
+        printf("Total pairs processed: %lld\n", global_total_pairs);
+    }
+
+    // Cleanup
+    free(local_result);
+    if (rank == 0) {
         free(global_result);
     }
-
-    free(local_result);
-    for (int i = 0; i < num_sequences; i++) {
-        free(sequences[i].sequence);
-        free(sequences[i].header);
+    for (int i = 0; i < CHUNK_SIZE; i++) {
+        free(current_chunk[i].sequence);
+        free(current_chunk[i].header);
+        free(target_chunk[i].sequence);
+        free(target_chunk[i].header);
     }
-    free(sequences);
+    free(current_chunk);
+    free(target_chunk);
+    if (rank == 0) {
+        for (int i = 0; i < num_sequences; i++) {
+            free(sequences[i].sequence);
+            free(sequences[i].header);
+        }
+        free(sequences);
+    }
 
     MPI_Finalize();
     return 0;
