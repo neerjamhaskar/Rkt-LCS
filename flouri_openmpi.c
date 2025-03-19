@@ -7,7 +7,7 @@
 #include <ctype.h>
 #include "flouri_lcp_table.h" // Include table.h
 
-#define MAX_STRING_LENGTH 1000000 // Maximum sequence length
+#define MAX_STRING_LENGTH 50 // Maximum sequence length
 #define MAX_LINE_LENGTH 1024
 #define MAX_SEQUENCES 10000 // Increased to handle larger datasets
 #define BUFFER_SIZE (1024 * 1024) // 1MB buffer
@@ -101,8 +101,10 @@ int main(int argc, char* argv[]) {
         }
 
         k = atoi(argv[2]);
+        /* Commenting out progress reporting
         printf("Read %d sequences from FASTA file\n", num_sequences);
         printf("Total pairs to process: %lld\n", (long long)num_sequences * (num_sequences - 1) / 2);
+        */
     }
 
     MPI_Bcast(&k, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -110,7 +112,9 @@ int main(int argc, char* argv[]) {
 
     // Process sequences in chunks to manage memory better
     int num_chunks = (num_sequences + CHUNK_SIZE - 1) / CHUNK_SIZE;
+    /* Commenting out progress reporting
     printf("Rank %d: Processing %d chunks\n", rank, num_chunks);
+    */
 
     // Allocate memory for two chunks (current and target)
     FastaSequence* current_chunk = (FastaSequence*)malloc(CHUNK_SIZE * sizeof(FastaSequence));
@@ -163,8 +167,10 @@ int main(int argc, char* argv[]) {
         int i_chunk_size = i_end - i_start;
 
         if (rank == 0) {
+            /* Commenting out progress reporting
             printf("Processing chunk %d/%d (sequences %d to %d)\n", 
                    i_chunk + 1, num_chunks, i_start, i_end - 1);
+            */
         }
 
         // Load current chunk
@@ -219,7 +225,9 @@ int main(int argc, char* argv[]) {
             if (my_end > total_pairs) my_end = total_pairs;
 
             if (rank == 0) {
+                /* Commenting out progress reporting
                 printf("Processing %d pairs between chunks %d and %d\n", total_pairs, i_chunk, j_chunk);
+                */
             }
 
             // Process pairs in smaller batches
@@ -252,6 +260,7 @@ int main(int argc, char* argv[]) {
                         continue;
                     }
 
+                    /* Commenting out result saving
                     char buffer[BUFFER_SIZE];
                     int written = snprintf(buffer, BUFFER_SIZE, "LCP Table for %s and %s:\n", 
                                          current_chunk[i].header, target_chunk[j].header);
@@ -273,6 +282,7 @@ int main(int argc, char* argv[]) {
                             current_pos++;
                         }
                     }
+                    */
 
                     // Free LCP table
                     for (int row = 0; row < strlen(current_chunk[i].sequence); row++) {
@@ -281,11 +291,14 @@ int main(int argc, char* argv[]) {
                     free(LCP);
 
                     total_pairs_processed++;
+                    /* Commenting out progress reporting
                     if (rank == 0 && total_pairs_processed % 1000 == 0) {
                         printf("Processed %lld pairs\n", total_pairs_processed);
                     }
+                    */
                 }
 
+                /* Commenting out result gathering and saving
                 // Gather results for this batch
                 MPI_Gather(local_result, BUFFER_SIZE, MPI_CHAR, 
                           global_result, BUFFER_SIZE, MPI_CHAR, 0, MPI_COMM_WORLD);
@@ -304,6 +317,7 @@ int main(int argc, char* argv[]) {
                 // Reset local result buffer for next batch
                 memset(local_result, 0, BUFFER_SIZE);
                 current_pos = 0;
+                */
             }
         }
     }
@@ -313,7 +327,9 @@ int main(int argc, char* argv[]) {
     MPI_Reduce(&total_pairs_processed, &global_total_pairs, 1, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
 
     if (rank == 0) {
+        /* Commenting out progress reporting
         printf("Total pairs processed: %lld\n", global_total_pairs);
+        */
     }
 
     // Cleanup
