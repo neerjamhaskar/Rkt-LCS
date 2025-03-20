@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "flouri_lcp_table.h" // Include table.h
+#include "flouri_lcp_table.c" // Include table.h
+
 
 #define MAX_STRING_LENGTH 50 // Maximum sequence length
 #define MAX_LINE_LENGTH 1024
