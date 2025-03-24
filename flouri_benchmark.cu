@@ -224,11 +224,23 @@ void free_2d_array(int** arr, int rows) {
 }
 
 int main(int argc, char* argv[]) {
+    // Check command line arguments
+    if (argc != 2) {
+        printf("Usage: %s <string_length>\n", argv[0]);
+        return 1;
+    }
+
+    // Get string length from command line
+    int str_length = atoi(argv[1]);
+    if (str_length <= 0) {
+        printf("Error: String length must be positive\n");
+        return 1;
+    }
+
     // Initialize random seed
     srand(time(NULL));
 
-    // Generate two random strings of length 5000 (increased for better GPU utilization)
-    int str_length = 5000;
+    // Generate two random strings
     char* str1 = generate_random_string(str_length);
     char* str2 = generate_random_string(str_length);
     int k = 2;
