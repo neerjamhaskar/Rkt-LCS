@@ -1,6 +1,4 @@
-////  ./dependencies/bin/mpicc -o flouri_openmpi.o flouri_openmpi.c
-///// ./dependencies/bin/mpirun -np 4 ./flouri_openmpi.o fake_reads.fasta 3
-#include "dependencies/include/mpi.h"
+#include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
