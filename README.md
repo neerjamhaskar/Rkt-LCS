@@ -1,6 +1,4 @@
 
-# OpenMPI Installation and Usage Guide
-
 ## Overview  
 This code provides the implementation of LCP_k table by Flouri in O(n^2/p) time using OpenMPI in two settings: (1) CPU-only (2) CPU-GPU
 ## Steps to Compile and Run  
