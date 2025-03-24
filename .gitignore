@@ -1,0 +1,35 @@
+# Object files
+*.o
+
+# CUDA compiled files
+*.cu.o
+*.cubin
+*.fatbin
+
+# Executables
+flouri_bench
+*.exe
+*.out
+
+# Build directories
+build/
+Debug/
+Release/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*~
+
+# Dependencies
+*.d
+
+# Compiled Static libraries
+*.lib
+*.a
+
+# Compiled Dynamic libraries
+*.dll
+*.so
+*.dylib 
