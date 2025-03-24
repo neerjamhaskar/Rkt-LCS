@@ -5,8 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "flouri_lcp_table.c" // Include table.h
+#include <unistd.h>
+#include <getopt.h>
+#include "flouri_cuda.h" // Include CUDA header
+#include "flouri_cpu.h" // Include CPU header
 
+// Function declarations
+int** compute_k_LCP(const char* S1, const char* S2, int k);
 
 #define MAX_STRING_LENGTH 50 // Maximum sequence length
 #define MAX_LINE_LENGTH 1024
@@ -85,29 +90,46 @@ int main(int argc, char* argv[]) {
     FastaSequence* sequences = NULL;
     int num_sequences;
     int k;
+    int use_cuda = 1;  // Default to using CUDA
+    int opt;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     if (rank == 0) {
-        if (argc != 3) {
-            printf("Usage: %s <fasta_file> <k>\n", argv[0]);
+        // Parse command line options
+        while ((opt = getopt(argc, argv, "c")) != -1) {
+            switch (opt) {
+                case 'c':
+                    use_cuda = 0;  // Use CPU version when -c is specified
+                    break;
+                default:
+                    printf("Usage: %s [-c] <fasta_file> <k>\n", argv[0]);
+                    printf("Options:\n");
+                    printf("  -c    Use CPU version instead of CUDA\n");
+                    MPI_Abort(MPI_COMM_WORLD, 1);
+            }
+        }
+
+        if (argc - optind != 2) {
+            printf("Usage: %s [-c] <fasta_file> <k>\n", argv[0]);
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
 
-        num_sequences = read_fasta(argv[1], &sequences);
+        num_sequences = read_fasta(argv[optind], &sequences);
         if (num_sequences < 0) {
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
 
-        k = atoi(argv[2]);
+        k = atoi(argv[optind + 1]);
         /* Commenting out progress reporting
         printf("Read %d sequences from FASTA file\n", num_sequences);
         printf("Total pairs to process: %lld\n", (long long)num_sequences * (num_sequences - 1) / 2);
         */
     }
 
+    MPI_Bcast(&use_cuda, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&k, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&num_sequences, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
@@ -255,7 +277,13 @@ int main(int argc, char* argv[]) {
                         j = pair_idx % j_chunk_size;
                     }
 
-                    int** LCP = compute_k_LCP(current_chunk[i].sequence, target_chunk[j].sequence, k);
+                    int** LCP;
+                    if (use_cuda) {
+                        LCP = compute_k_lcp_cuda(current_chunk[i].sequence, target_chunk[j].sequence, k);
+                    } else {
+                        LCP = compute_k_LCP(current_chunk[i].sequence, target_chunk[j].sequence, k);
+                    }
+                    
                     if (!LCP) {
                         printf("Rank %d: Failed to compute LCP for pair %d-%d\n", rank, i_start + i, j_start + j);
                         continue;

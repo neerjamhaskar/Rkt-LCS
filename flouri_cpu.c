@@ -98,45 +98,45 @@ int** compute_k_LCP(const char* S1, const char* S2, int k) {
 
 
 // Test main function
-int main() {
-    // Test sequences
-    const char* S1 = "ssstring1";
-    const char* S2 = "string2";
-    int k = 2;  // Allow 2 mismatches
+// int main() {
+//     // Test sequences
+//     const char* S1 = "ssstring1";
+//     const char* S2 = "string2";
+//     int k = 2;  // Allow 2 mismatches
 
-    printf("Testing compute_k_LCP with:\n");
-    printf("S1: %s\n", S1);
-    printf("S2: %s\n", S2);
-    printf("k: %d\n\n", k);
+//     printf("Testing compute_k_LCP with:\n");
+//     printf("S1: %s\n", S1);
+//     printf("S2: %s\n", S2);
+//     printf("k: %d\n\n", k);
 
-    // Compute LCP table
-    int** LCP = compute_k_LCP(S1, S2, k);
-    if (!LCP) {
-        printf("Failed to compute LCP table\n");
-        return 1;
-    }
+//     // Compute LCP table
+//     int** LCP = compute_k_LCP(S1, S2, k);
+//     if (!LCP) {
+//         printf("Failed to compute LCP table\n");
+//         return 1;
+//     }
 
-    // Print LCP table
-    printf("LCP Table (k=%d):\n", k);
-    printf("   ");
-    for (int j = 0; j < strlen(S2); j++) {
-        printf("%3d ", j);
-    }
-    printf("\n");
+//     // Print LCP table
+//     printf("LCP Table (k=%d):\n", k);
+//     printf("   ");
+//     for (int j = 0; j < strlen(S2); j++) {
+//         printf("%3d ", j);
+//     }
+//     printf("\n");
 
-    for (int i = 0; i < strlen(S1); i++) {
-        printf("%2d: ", i);
-        for (int j = 0; j < strlen(S2); j++) {
-            printf("%3d ", LCP[i][j]);
-        }
-        printf("\n");
-    }
+//     for (int i = 0; i < strlen(S1); i++) {
+//         printf("%2d: ", i);
+//         for (int j = 0; j < strlen(S2); j++) {
+//             printf("%3d ", LCP[i][j]);
+//         }
+//         printf("\n");
+//     }
 
-    // Clean up
-    for (int i = 0; i < strlen(S1); i++) {
-        free(LCP[i]);
-    }
-    free(LCP);
+//     // Clean up
+//     for (int i = 0; i < strlen(S1); i++) {
+//         free(LCP[i]);
+//     }
+//     free(LCP);
 
-    return 0;
-}
+//     return 0;
+// }
