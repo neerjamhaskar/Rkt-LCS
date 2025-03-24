@@ -207,7 +207,7 @@ int** compute_k_lcp_cpu(const char* S1, const char* S2, int k) {
 // Function to generate random string
 char* generate_random_string(int length) {
     char* str = (char*)malloc((length + 1) * sizeof(char));
-    const char charset[] = "abcdefghijklmnopqrstuvwxyz";
+    const char charset[] = "ATCGN";
     for (int i = 0; i < length; i++) {
         str[i] = charset[rand() % (sizeof(charset) - 1)];
     }
@@ -223,30 +223,114 @@ void free_2d_array(int** arr, int rows) {
     free(arr);
 }
 
+// Function to print LCP results
+void print_lcp_results(int** cpu_result, int** cuda_result, int n, int m) {
+    printf("\nCPU Results:\n");
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            printf("%3d ", cpu_result[i][j]);
+        }
+        printf("\n");
+    }
+    
+    printf("\nGPU Results:\n");
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            printf("%3d ", cuda_result[i][j]);
+        }
+        printf("\n");
+    }
+}
+
 int main(int argc, char* argv[]) {
-    // Check command line arguments
-    if (argc != 2) {
-        printf("Usage: %s <string_length>\n", argv[0]);
+    bool print_results = false;
+    bool manual_strings = false;
+    char *str1 = NULL, *str2 = NULL;
+    int str_length = 0, k = 0;
+    int arg_index = 1;
+
+    // Parse command line options
+    while (arg_index < argc && argv[arg_index][0] == '-') {
+        if (strcmp(argv[arg_index], "-p") == 0) {
+            print_results = true;
+            arg_index++;
+        } else if (strcmp(argv[arg_index], "-m") == 0) {
+            manual_strings = true;
+            if (arg_index + 2 >= argc) {
+                printf("Error: -m option requires two strings\n");
+                return 1;
+            }
+            str1 = strdup(argv[arg_index + 1]);
+            str2 = strdup(argv[arg_index + 2]);
+            str_length = strlen(str1);
+            if (str_length != strlen(str2)) {
+                printf("Error: Input strings must be of equal length\n");
+                free(str1);
+                free(str2);
+                return 1;
+            }
+            arg_index += 3;
+        } else {
+            printf("Unknown option: %s\n", argv[arg_index]);
+            return 1;
+        }
+    }
+
+    // Check remaining arguments
+    if (!manual_strings) {
+        if (argc - arg_index != 2) {
+            printf("Usage: %s [-p] [-m str1 str2] <string_length> <k>\n", argv[0]);
+            printf("Options:\n");
+            printf("  -p: Print CPU and GPU results\n");
+            printf("  -m str1 str2: Use manual input strings instead of random\n");
+            printf("Arguments:\n");
+            printf("  string_length: Length of random DNA strings to generate (ignored if -m is used)\n");
+            printf("  k: Maximum number of mismatches allowed\n");
+            return 1;
+        }
+        
+        // Get string length from command line
+        str_length = atoi(argv[arg_index]);
+        if (str_length <= 0) {
+            printf("Error: String length must be positive\n");
+            return 1;
+        }
+    }
+
+    // Get k value
+    k = atoi(argv[arg_index + (!manual_strings ? 1 : 0)]);
+    if (k <= 0) {
+        printf("Error: k must be positive\n");
+        if (manual_strings) {
+            free(str1);
+            free(str2);
+        }
+        return 1;
+    }
+    if (k >= str_length) {
+        printf("Error: k must be less than string length (%d)\n", str_length);
+        if (manual_strings) {
+            free(str1);
+            free(str2);
+        }
         return 1;
     }
 
-    // Get string length from command line
-    int str_length = atoi(argv[1]);
-    if (str_length <= 0) {
-        printf("Error: String length must be positive\n");
-        return 1;
+    // Generate random strings if not provided
+    if (!manual_strings) {
+        // Initialize random seed
+        srand(time(NULL));
+        str1 = generate_random_string(str_length);
+        str2 = generate_random_string(str_length);
     }
 
-    // Initialize random seed
-    srand(time(NULL));
-
-    // Generate two random strings
-    char* str1 = generate_random_string(str_length);
-    char* str2 = generate_random_string(str_length);
-    int k = 2;
-
-    printf("Benchmarking with strings of length %d\n", str_length);
-    printf("k = %d\n", k);
+    printf("Benchmarking with:\n");
+    printf("  String length: %d\n", str_length);
+    printf("  k (max mismatches): %d\n", k);
+    if (manual_strings) {
+        printf("  String 1: %s\n", str1);
+        printf("  String 2: %s\n", str2);
+    }
 
     // CPU Implementation
     clock_t cpu_start = clock();
@@ -271,7 +355,7 @@ int main(int argc, char* argv[]) {
         if (!results_match) break;
     }
 
-    // Print results
+    // Print performance results
     printf("\nPerformance Results:\n");
     printf("CPU Time: %.4f seconds\n", cpu_time);
     printf("CUDA Time Breakdown:\n");
@@ -280,6 +364,11 @@ int main(int argc, char* argv[]) {
     printf("  - Total CUDA Time: %.4f seconds\n", total_cuda_time);
     printf("Speedup: %.2fx\n", cpu_time / total_cuda_time);
     printf("Results Match: %s\n", results_match ? "Yes" : "No");
+
+    // Print LCP results if requested
+    if (print_results) {
+        print_lcp_results(cpu_result, cuda_result, str_length, str_length);
+    }
 
     // Free memory
     free(str1);
