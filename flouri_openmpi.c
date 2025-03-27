@@ -76,7 +76,7 @@ int read_fake_fasta(const char* filename, FastaSequence** sequences) {
 
 // Parallel version of Rkt_LCS using OpenMPI.
 // Parallelization is done by distributing the work over the sequences S[0]..S[m-1].
-int * Rkt_LCS_MPI(char* S[], int m, int k, int t) {
+int * Rkt_LCS_MPI(char* S[], int m, int k, int t, int tau) {
     int rank, size;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -98,11 +98,12 @@ int * Rkt_LCS_MPI(char* S[], int m, int k, int t) {
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
         for (int j = i; j < m; j++) {
-            LCP_i[j - i] = compute_k_LCP_max(S[i], S[j], k);
+            LCP_i[j - i] = compute_k_LCP_max(S[i], S[j], k, tau);
         }
         
         // For each possible starting position p in S[i]:
-        for (int p = 0; p < li; p++) {
+        // p needs to be <= li - tau
+        for (int p = 0; p < li - tau + 1; p++) {
             int** LengthStat = compute_LengthStat(LCP_i, S, m, p, i);
             int L = li - p;  // Maximum possible substring length from S[i] starting at p.
             
@@ -214,7 +215,7 @@ int main(int argc, char* argv[]) {
     int rank, size;
     FastaSequence* sequences = NULL;
     int num_sequences;
-    int k, t;  // k, t: args for Rkt_LCS_MPI
+    int k, t, tau;  // k, t: args for Rkt_LCS_MPI
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -222,8 +223,8 @@ int main(int argc, char* argv[]) {
 
     // Rank 0 reads the FASTA file and parses command-line arguments.
     if (rank == 0) {
-        if (argc != 4) {
-            printf("Usage: %s <fasta_file> <k> <t>\n", argv[0]);
+        if (argc != 5) {
+            printf("Usage: %s <fasta_file> <k> <t> <tau>\n", argv[0]);
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
         num_sequences = read_fasta(argv[1], &sequences);
@@ -232,12 +233,14 @@ int main(int argc, char* argv[]) {
         }
         k = atoi(argv[2]);
         t = atoi(argv[3]);
+        tau = atoi(argv[4]);
         printf("Read %d sequences from FASTA file\n", num_sequences);
     }
 
     // Broadcast k, t, and the number of sequences to all processes.
     MPI_Bcast(&k, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&t, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&tau, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&num_sequences, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // All processes allocate memory for the sequences if they are not rank 0.
@@ -275,7 +278,7 @@ int main(int argc, char* argv[]) {
 
     // Call the MPI-parallelized longest common substring function.
     // This function will run in parallel over all processes and return the best candidate.
-    int* lcs_result = Rkt_LCS_MPI(S_array, num_sequences, k, t);
+    int* lcs_result = Rkt_LCS_MPI(S_array, num_sequences, k, t, tau);
 
     // Rank 0 prints the result.
     if (rank == 0) {

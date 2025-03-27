@@ -167,18 +167,20 @@ int** compute_k_LCP(const char* S1, const char* S2, int k) {
     return LCP;
 }
 
-// compute_k_LCP (memory improved)
-//
+// compute_k_LCP_max (memory improved, with tau)
 // Computes a longest-common-prefix (LCP) array between S1 and S2,
-// allowing up to k mismatches. The LCP table is of size
-// strlen(S1) where for each position in S1, only the longest length is stored. 
-// A temporary queue is used to record mismatch positions.
-int* compute_k_LCP_max(const char* S1, const char* S2, int k) {
+// allowing up to k mismatches. An extra parameter tau is used so that
+// starting positions in S1 with less than tau characters remaining are discarded.
+// Moreover, the first tau characters are compared normally (mismatches counted)
+// and only if they are processed (i.e. p reaches tau) do we continue.
+// Thus, the returned LCP length will include those tau characters.
+int* compute_k_LCP_max(const char* S1, const char* S2, int k, int tau) {
     int n = strlen(S1);
     int m = strlen(S2);
 
-    // Allocate LCP table: n rows, each with m integers.
-    int* LCP = (int*)malloc(n * sizeof(int));
+    // Only consider S1 positions that have at least tau characters remaining.
+    int resultSize = n - tau + 1;
+    int* LCP = (int*)malloc(resultSize * sizeof(int));
     if (!LCP) {
         fprintf(stderr, "Memory allocation failed for LCP table\n");
         exit(EXIT_FAILURE);
@@ -187,16 +189,35 @@ int* compute_k_LCP_max(const char* S1, const char* S2, int k) {
     // Create a queue to track mismatch positions (capacity = k)
     Queue* Q = createQueue(k);
 
-    // For each pair of starting positions in S1 and S2:
-    for (int start1 = 0; start1 < n; start1++) {
+    // For each starting position in S1 that has at least tau characters.
+    for (int start1 = 0; start1 < resultSize; start1++) {
         int longest = 0;
         for (int start2 = 0; start2 < m; start2++) {
-            /* Reset the queue quickly instead of dequeueing each element */
+            // Reset the queue for this start2.
             Q->size = 0;
             Q->front = 0;
             Q->rear = -1;
 
-            int p = 0, max_length = 0;
+            int p = 0;
+
+            // Phase 1: Process the first tau characters.
+            // We compare the first tau characters and record any mismatches.
+            for (p = 0; p < tau; p++) {
+                if (start1 + p >= n || start2 + p >= m)
+                    break;  // End of one of the strings.
+                if (S1[start1 + p] != S2[start2 + p]) {
+                    if (Q->size == k) {
+                        break;  // Exceeded allowed mismatches.
+                    }
+                    enqueue(Q, p);
+                }
+            }
+            // If we couldn't process at least tau characters, discard this pair.
+            if (p < tau) {
+                continue;
+            }
+
+            // Phase 2: Continue comparing beyond the first tau characters.
             while ((start1 + p < n) && (start2 + p < m)) {
                 if (S1[start1 + p] != S2[start2 + p]) {
                     if (Q->size == k) {
@@ -205,10 +226,9 @@ int* compute_k_LCP_max(const char* S1, const char* S2, int k) {
                     enqueue(Q, p);
                 }
                 p++;
-                max_length = p;
             }
-            if (max_length > longest) {
-                longest = max_length;
+            if (p > longest) {
+                longest = p;
             }
         }
         LCP[start1] = longest;
@@ -225,6 +245,7 @@ int* compute_k_LCP_max(const char* S1, const char* S2, int k) {
 // this function computes a LengthStat table for S[i] starting at offset p.
 // The table has L rows (where L = strlen(S[i]) - p) and (m+1) columns;
 // the last column is used to store cumulative sums.
+// p needs to be <= len(S[i]) - tau
 int** compute_LengthStat(int** LCP_i, char** S, int m, int p, int i) {
     const int li = strlen(S[i]);
     const int L = li - p;     // Maximum possible length for a substring from S[i] starting at p.
@@ -247,7 +268,7 @@ int** compute_LengthStat(int** LCP_i, char** S, int m, int p, int i) {
 
     // Initialization: for j from i to m-1, mark positions where LCP_i indicates a match.
     for (int j = i; j < m; j++) {
-        const int l = LCP_i[j - i][p];
+        const int l = LCP_i[j - i][p];    // LCP_i[j-i] has length len(S[i]) - tau + 1, so p needs to be <= len(S[i]) - tau.
         if (l > 0)
             LengthStat[l - 1][j] = 1;
     }
