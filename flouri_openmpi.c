@@ -5,9 +5,9 @@
 #include <ctype.h>
 #include "flouri_lcp_table.h" // Include table.h
 
-#define MAX_STRING_LENGTH 1000000 // Maximum sequence length
-#define MAX_LINE_LENGTH 1024
-#define MAX_SEQUENCES 1000
+#define MAX_STRING_LENGTH 80 // Maximum sequence length
+#define MAX_LINE_LENGTH 100
+#define MAX_SEQUENCES 2155640
 #define BUFFER_SIZE 1024 // To avoid strcat overflows
 
 // Structure to store FASTA sequence
@@ -18,7 +18,7 @@ typedef struct {
 
 // Parallel version of Rkt_LCS using OpenMPI.
 // Parallelization is done by distributing the work over the sequences S[0]..S[m-1].
-int * Rkt_LCS_MPI(char* S[], int m, int k, int t, int tau) {
+int * Rkt_LCS_MPI(char* S[], int m, int k, int t, int tau, int r) {
     int rank, size;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -32,7 +32,7 @@ int * Rkt_LCS_MPI(char* S[], int m, int k, int t, int tau) {
     // Distribute the work over S[0]..S[m-1]:
     // Each process takes i values where i % size == rank.
     for (int i = rank; i < m; i += size) {
-        int li = strlen(S[i]);
+        int li = r; //strlen(S[i]);
         const int numTables = m - i;
         int** LCP_i = (int**)malloc(numTables * sizeof(int*));
         if (!LCP_i) {
@@ -40,13 +40,13 @@ int * Rkt_LCS_MPI(char* S[], int m, int k, int t, int tau) {
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
         for (int j = i; j < m; j++) {
-            LCP_i[j - i] = compute_k_LCP_max(S[i], S[j], k, tau);
+            LCP_i[j - i] = compute_k_LCP_max(S[i], S[j], k, tau, r);
         }
         
         // For each possible starting position p in S[i]:
         // p needs to be <= li - tau
         for (int p = 0; p < li - tau + 1; p++) {
-            int** LengthStat = compute_LengthStat(LCP_i, S, m, p, i);
+            int** LengthStat = compute_LengthStat(LCP_i, S, m, p, i, r);
             int L = li - p;  // Maximum possible substring length from S[i] starting at p.
             
             // Check candidate lengths from longest to shortest.
@@ -103,49 +103,58 @@ int * Rkt_LCS_MPI(char* S[], int m, int k, int t, int tau) {
     return result;  // Only rank 0’s result is considered authoritative.
 }
 
-// Function to read a FASTQ-like file where only the (4k+2) header and (4k+3) sequence lines are used.
+// Function to read FASTA file
 int read_fasta(const char* filename, FastaSequence** sequences) {
     FILE* file = fopen(filename, "r");
     if (!file) {
-        fprintf(stderr, "Error opening file: %s\n", filename);
+        printf("Error opening file: %s\n", filename);
         return -1;
     }
 
     char line[MAX_LINE_LENGTH];
     int seq_count = 0;
-    int line_num = 0;
+    char* current_sequence = NULL;
+    int current_seq_len = 0;
+    int current_seq_capacity = MAX_STRING_LENGTH;
 
-    // Allocate array for sequences
     *sequences = (FastaSequence*)malloc(MAX_SEQUENCES * sizeof(FastaSequence));
     if (!*sequences) {
-        fprintf(stderr, "Error: Memory allocation failed\n");
+        printf("Error: Memory allocation failed\n");
         fclose(file);
         return -1;
     }
 
     while (fgets(line, MAX_LINE_LENGTH, file)) {
-        line[strcspn(line, "\n")] = '\0';  // Remove newline
+        line[strcspn(line, "\n")] = 0; // Remove newline
 
-        if (line_num % 4 == 1) {
-            // This is a header line (4k+2 when counting from 1)
-            (*sequences)[seq_count].header = strdup(line);
-            if (!(*sequences)[seq_count].header) {
-                fprintf(stderr, "Error: Memory allocation failed\n");
+        if (line[0] == '>') {
+            if (current_sequence) {
+                current_sequence[current_seq_len] = '\0';
+                (*sequences)[seq_count - 1].sequence = current_sequence;
+            }
+
+            (*sequences)[seq_count].header = strdup(line + 1);
+            current_sequence = (char*)malloc(current_seq_capacity * sizeof(char));
+            if (!current_sequence || !(*sequences)[seq_count].header) {
+                printf("Error: Memory allocation failed\n");
                 fclose(file);
                 return -1;
             }
-        } else if (line_num % 4 == 2) {
-            // This is the sequence line (4k+3 when counting from 1)
-            (*sequences)[seq_count].sequence = strdup(line);
-            if (!(*sequences)[seq_count].sequence) {
-                fprintf(stderr, "Error: Memory allocation failed\n");
-                fclose(file);
-                return -1;
+
+            current_seq_len = 0;
+            seq_count++;
+        } else {
+            for (int i = 0; line[i]; i++) {
+                if (!isspace(line[i])) {
+                    current_sequence[current_seq_len++] = line[i];
+                }
             }
-            seq_count++; // Increment count after both header and sequence have been read.
         }
-        // Lines where (line_num % 4 == 0) or (line_num % 4 == 3) are ignored.
-        line_num++;
+    }
+
+    if (current_sequence) {
+        current_sequence[current_seq_len] = '\0';
+        (*sequences)[seq_count - 1].sequence = current_sequence;
     }
 
     fclose(file);
@@ -159,7 +168,7 @@ int main(int argc, char* argv[]) {
     int rank, size;
     FastaSequence* sequences = NULL;
     int num_sequences;
-    int k, t, tau;  // k, t: args for Rkt_LCS_MPI
+    int k, t, tau, r;  // k, t: args for Rkt_LCS_MPI
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -167,8 +176,8 @@ int main(int argc, char* argv[]) {
 
     // Rank 0 reads the FASTA file and parses command-line arguments.
     if (rank == 0) {
-        if (argc != 5) {
-            printf("Usage: %s <fasta_file> <k> <t> <tau>\n", argv[0]);
+        if (argc != 6) {
+            printf("Usage: %s <fasta_file> <k> <t> <tau> <r>\n", argv[0]);
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
         num_sequences = read_fasta(argv[1], &sequences);
@@ -178,6 +187,7 @@ int main(int argc, char* argv[]) {
         k = atoi(argv[2]);
         t = atoi(argv[3]);
         tau = atoi(argv[4]);
+        r = atoi(argv[5]);
         printf("Read %d sequences from FASTA file\n", num_sequences);
     }
 
@@ -185,6 +195,7 @@ int main(int argc, char* argv[]) {
     MPI_Bcast(&k, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&t, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&tau, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&r, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&num_sequences, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // All processes allocate memory for the sequences if they are not rank 0.
@@ -222,7 +233,7 @@ int main(int argc, char* argv[]) {
 
     // Call the MPI-parallelized longest common substring function.
     // This function will run in parallel over all processes and return the best candidate.
-    int* lcs_result = Rkt_LCS_MPI(S_array, num_sequences, k, t, tau);
+    int* lcs_result = Rkt_LCS_MPI(S_array, num_sequences, k, t, tau, r);
 
     // Rank 0 prints the result.
     if (rank == 0) {

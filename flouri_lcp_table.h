@@ -2,9 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*** Helper DS and functions ***/
-/*---------------------------------------------------------*/
 
+//#region <Helper DS and functions>
 // Helper DS: Queue
 //
 // Queue structure and operations
@@ -98,8 +97,7 @@ void free2DArray(int** arr, int rows) {
     free(arr);
 }
 
-/*** End of helper functions ***/
-//---------------------------------------------------------
+//#endregion
 
 
 
@@ -170,9 +168,9 @@ int** compute_k_LCP(const char* S1, const char* S2, int k) {
 // Moreover, the first tau characters are compared normally (mismatches counted)
 // and only if they are processed (i.e. p reaches tau) do we continue.
 // Thus, the returned LCP length will include those tau characters.
-int* compute_k_LCP_max(const char* S1, const char* S2, int k, int tau) {
-    int n = strlen(S1);
-    int m = strlen(S2);
+int* compute_k_LCP_max(const char* S1, const char* S2, int k, int tau, int r) {
+    int n = r;
+    int m = r;
 
     // Only consider S1 positions that have at least tau characters remaining.
     int resultSize = n - tau + 1;
@@ -242,8 +240,8 @@ int* compute_k_LCP_max(const char* S1, const char* S2, int k, int tau) {
 // The table has L rows (where L = strlen(S[i]) - p) and (m+1) columns;
 // the last column is used to store cumulative sums.
 // p needs to be <= len(S[i]) - tau
-int** compute_LengthStat(int** LCP_i, char** S, int m, int p, int i) {
-    const int li = strlen(S[i]);
+int** compute_LengthStat(int** LCP_i, char** S, int m, int p, int i, int r) {
+    const int li = r;
     const int L = li - p;     // Maximum possible length for a substring from S[i] starting at p.
 
     // Allocate a table of L rows and (m+1) columns; initialize to zero.
@@ -293,7 +291,7 @@ int** compute_LengthStat(int** LCP_i, char** S, int m, int p, int i) {
 // For an array S of m strings, this function anchors on each S[i] and computes
 // a longest common substring (LCS) among the strings (allowing up to k mismatches)
 // that occurs in at least t strings. It returns a newly allocated substring.
-char * Rkt_LCS(char* S[], int m, int k, int t) {
+char * Rkt_LCS(char* S[], int m, int k, int t, int tau, int r) {
     int len_max = 0;
     char * result = NULL;
 
@@ -308,12 +306,12 @@ char * Rkt_LCS(char* S[], int m, int k, int t) {
             exit(EXIT_FAILURE);
         }
         for (int j = i; j < m; j++) {
-            LCP_i[j - i] = compute_k_LCP_max(S[i], S[j], k);
+            LCP_i[j - i] = compute_k_LCP_max(S[i], S[j], k, tau, r);
         }
 
         // For each possible starting position p in S[i]:
         for (int p = 0; p < li; p++) {
-            int** LengthStat = compute_LengthStat(LCP_i, S, m, p, i);
+            int** LengthStat = compute_LengthStat(LCP_i, S, m, p, i, r);
             int L = li - p;  // Maximum possible substring length from S[i] starting at p.
 
             // Check for each candidate length (from longest down to 1)
