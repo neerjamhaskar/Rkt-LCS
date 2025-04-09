@@ -24,5 +24,5 @@ mpicc -o flouri_openmpi \
 ```bash
 time mpirun -np 4 ./flouri_openmpi data/10.fasta 3 -c
 ```
--c refers to CPU-GPU computation
+-c refers to CPU only computation
 
