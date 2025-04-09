@@ -11,7 +11,7 @@
 // Function declarations
 int** compute_k_LCP(const char* S1, const char* S2, int k);
 
-#define MAX_STRING_LENGTH 50 // Maximum sequence length
+#define MAX_STRING_LENGTH 10000 // Increased to handle merged sequences
 #define MAX_LINE_LENGTH 1024
 #define MAX_SEQUENCES 10000 // Increased to handle larger datasets
 #define BUFFER_SIZE (1024 * 1024) // 1MB buffer
@@ -24,7 +24,92 @@ typedef struct {
     char* header;
     char* sequence;
 } FastaSequence;
+// Parallel version of Rkt_LCS using OpenMPI.
+// Parallelization is done by distributing the work over the sequences S[0]..S[m-1].
+int * Rkt_LCS_MPI(char* S[], int m, int k, int t, int tau, int r) {
+    int rank, size;
 
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    // Each process will compute a local best candidate.
+    int local_len_max = 0;
+    int local_start_index = -1;
+    int local_pivot_index = -1;
+
+    // Distribute the work over S[0]..S[m-1]:
+    // Each process takes i values where i % size == rank.
+    for (int i = rank; i < m; i += size) {
+        int li = r; //strlen(S[i]);
+        const int numTables = m - i;
+        int** LCP_i = (int**)malloc(numTables * sizeof(int*));
+        if (!LCP_i) {
+            fprintf(stderr, "Memory allocation failed for LCP_i\n");
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
+        for (int j = i; j < m; j++) {
+            LCP_i[j - i] = compute_k_LCP_max(S[i], S[j], k, tau, r);
+        }
+        
+        // For each possible starting position p in S[i]:
+        // p needs to be <= li - tau
+        for (int p = 0; p < li - tau + 1; p++) {
+            int** LengthStat = compute_LengthStat(LCP_i, S, m, p, i, r);
+            int L = li - p;  // Maximum possible substring length from S[i] starting at p.
+            
+            // Check candidate lengths from longest to shortest.
+            for (int l = L; l >= 1; l--) {  
+                if (LengthStat[l - 1][m] >= t && l > local_len_max) {
+                    local_start_index = p;
+                    local_pivot_index = i;
+                    local_len_max = l;
+                }
+            }
+            free2DArray((int **)LengthStat, L);
+        }
+        free2DArray((int **)LCP_i, numTables);
+    }
+    
+    // We use MPI_Allreduce to find the maximum candidate length overall.
+    int global_len_max = 0;
+    MPI_Allreduce(&local_len_max, &global_len_max, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+                
+    // Also gather the candidate start index.
+    int gathered_starts[size];
+    MPI_Gather(&local_start_index, 1, MPI_INT,
+                gathered_starts, 1, MPI_INT,
+                0, MPI_COMM_WORLD);
+
+    // Also gather the pivot index.
+    int gathered_pivot_index[size];
+    MPI_Gather(&local_pivot_index, 1, MPI_INT,
+                gathered_pivot_index, 1, MPI_INT,
+                0, MPI_COMM_WORLD);
+    
+    // Also gather the candidate lengths.
+    int gathered_lengths[size];
+    MPI_Gather(&local_len_max, 1, MPI_INT,
+               gathered_lengths, 1, MPI_INT,
+               0, MPI_COMM_WORLD);
+    
+    // result: index i of pivot string, start index p in pivot string
+    int* result = (int*)malloc(3 * sizeof(int));
+    if (rank == 0) {
+        // Rank 0 selects the candidate whose length equals global_len_max.
+        // (If more than one candidate qualifies, we choose the first one.)
+        for (int i = 0; i < size; i++) {
+            if (gathered_lengths[i] == global_len_max && global_len_max > 0) {
+                result[0] = gathered_pivot_index[i];
+                result[1] = gathered_starts[i];
+                break;
+            }
+        }
+        // If no candidate was found, result remains NULL.
+    }
+    result[2] = global_len_max;
+    
+    return result;  // Only rank 0's result is considered authoritative.
+}
 // Function to read FASTA file
 int read_fasta(const char* filename, FastaSequence** sequences) {
     FILE* file = fopen(filename, "r");
