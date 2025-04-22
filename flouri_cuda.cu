@@ -82,14 +82,45 @@ extern "C" int** compute_k_lcp_cuda(const char* S1, const char* S2, int k) {
 
     // Use pinned memory for faster transfers
     char* h_S1_pinned, *h_S2_pinned;
+
+    // Calculate total memory needed
+    size_t total_memory_needed = (n * sizeof(char)) + (m * sizeof(char)) + (n * m * sizeof(int));
+    size_t free_memory, total_memory;
+    cudaMemGetInfo(&free_memory, &total_memory);
+    
+    if (total_memory_needed > free_memory) {
+        fprintf(stderr, "Not enough GPU memory. Need %zu bytes, but only %zu available\n", 
+                total_memory_needed, free_memory);
+        return NULL;
+    }
+
     CUDA_CHECK(cudaMallocHost(&h_S1_pinned, n * sizeof(char)));
     CUDA_CHECK(cudaMallocHost(&h_S2_pinned, m * sizeof(char)));
     memcpy(h_S1_pinned, S1, n * sizeof(char));
     memcpy(h_S2_pinned, S2, m * sizeof(char));
 
-    CUDA_CHECK(cudaMalloc(&d_S1, n * sizeof(char)));
-    CUDA_CHECK(cudaMalloc(&d_S2, m * sizeof(char)));
-    CUDA_CHECK(cudaMalloc(&d_LCP, n * m * sizeof(int)));
+    // Allocate device memory with error checking
+    cudaError_t err;
+    err = cudaMalloc(&d_S1, n * sizeof(char));
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Failed to allocate d_S1: %s\n", cudaGetErrorString(err));
+        return NULL;
+    }
+    
+    err = cudaMalloc(&d_S2, m * sizeof(char));
+    if (err != cudaSuccess) {
+        cudaFree(d_S1);
+        fprintf(stderr, "Failed to allocate d_S2: %s\n", cudaGetErrorString(err));
+        return NULL;
+    }
+    
+    err = cudaMalloc(&d_LCP, n * m * sizeof(int));
+    if (err != cudaSuccess) {
+        cudaFree(d_S1);
+        cudaFree(d_S2);
+        fprintf(stderr, "Failed to allocate d_LCP: %s\n", cudaGetErrorString(err));
+        return NULL;
+    }
 
     // Allocate host memory for result
     h_LCP = (int**)malloc(n * sizeof(int*));

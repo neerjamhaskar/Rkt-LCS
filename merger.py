@@ -4,7 +4,7 @@ from Bio.Seq import Seq
 import argparse
 import os
 
-def merge_sequences(input_file, batch_size=100):
+def merge_sequences(input_file, batch_size):
     # Check if input file exists
     if not os.path.exists(input_file):
         print(f"Error: Input file '{input_file}' not found")
@@ -37,8 +37,7 @@ def merge_sequences(input_file, batch_size=100):
 def main():
     parser = argparse.ArgumentParser(description='Merge FASTA sequences in batches')
     parser.add_argument('input_file', help='Path to the input FASTA file')
-    parser.add_argument('--batch-size', type=int, default=100, 
-                      help='Number of sequences to merge in each batch (default: 100)')
+    parser.add_argument('batch_size', type=int, help='Number of sequences to merge in each batch')
     
     args = parser.parse_args()
     merge_sequences(args.input_file, args.batch_size)

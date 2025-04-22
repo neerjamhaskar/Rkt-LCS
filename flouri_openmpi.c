@@ -11,13 +11,13 @@
 // Function declarations
 int** compute_k_LCP(const char* S1, const char* S2, int k);
 
-#define MAX_STRING_LENGTH 10000 // Increased to handle merged sequences
+#define MAX_STRING_LENGTH 1000000 // Increased to handle merged sequences
 #define MAX_LINE_LENGTH 1024
-#define MAX_SEQUENCES 10000 // Increased to handle larger datasets
+#define MAX_SEQUENCES 100000 // Increased to handle larger datasets
 #define BUFFER_SIZE (1024 * 1024) // 1MB buffer
 #define MAX_RESULT_SIZE (BUFFER_SIZE * 32) // Maximum size for global result
-#define CHUNK_SIZE 50 // Reduced chunk size for better work distribution
-#define MAX_PAIRS_PER_CHUNK 1000 // Maximum number of pairs to process in each batch
+#define CHUNK_SIZE 10 // Reduced chunk size to avoid GPU memory issues
+#define MAX_PAIRS_PER_CHUNK 100 // Reduced to avoid GPU memory pressure
 
 // Structure to store FASTA sequence
 typedef struct {
@@ -136,8 +136,20 @@ int read_fasta(const char* filename, FastaSequence** sequences) {
 
         if (line[0] == '>') {
             if (current_sequence) {
+                if (current_seq_len >= MAX_STRING_LENGTH) {
+                    printf("Error: Sequence length exceeds maximum allowed (%d)\n", MAX_STRING_LENGTH);
+                    free(current_sequence);
+                    fclose(file);
+                    return -1;
+                }
                 current_sequence[current_seq_len] = '\0';
                 (*sequences)[seq_count - 1].sequence = current_sequence;
+            }
+
+            if (seq_count >= MAX_SEQUENCES) {
+                printf("Error: Number of sequences exceeds maximum allowed (%d)\n", MAX_SEQUENCES);
+                fclose(file);
+                return -1;
             }
 
             (*sequences)[seq_count].header = strdup(line + 1);
@@ -153,6 +165,12 @@ int read_fasta(const char* filename, FastaSequence** sequences) {
         } else {
             for (int i = 0; line[i]; i++) {
                 if (!isspace(line[i])) {
+                    if (current_seq_len >= MAX_STRING_LENGTH - 1) {
+                        printf("Error: Sequence length exceeds maximum allowed (%d)\n", MAX_STRING_LENGTH);
+                        free(current_sequence);
+                        fclose(file);
+                        return -1;
+                    }
                     current_sequence[current_seq_len++] = line[i];
                 }
             }
@@ -160,6 +178,12 @@ int read_fasta(const char* filename, FastaSequence** sequences) {
     }
 
     if (current_sequence) {
+        if (current_seq_len >= MAX_STRING_LENGTH) {
+            printf("Error: Sequence length exceeds maximum allowed (%d)\n", MAX_STRING_LENGTH);
+            free(current_sequence);
+            fclose(file);
+            return -1;
+        }
         current_sequence[current_seq_len] = '\0';
         (*sequences)[seq_count - 1].sequence = current_sequence;
     }
@@ -282,8 +306,10 @@ int main(int argc, char* argv[]) {
         // Load current chunk
         if (rank == 0) {
             for (int i = 0; i < i_chunk_size; i++) {
-                strcpy(current_chunk[i].header, sequences[i_start + i].header);
-                strcpy(current_chunk[i].sequence, sequences[i_start + i].sequence);
+                strncpy(current_chunk[i].header, sequences[i_start + i].header, MAX_LINE_LENGTH - 1);
+                current_chunk[i].header[MAX_LINE_LENGTH - 1] = '\0';
+                strncpy(current_chunk[i].sequence, sequences[i_start + i].sequence, MAX_STRING_LENGTH - 1);
+                current_chunk[i].sequence[MAX_STRING_LENGTH - 1] = '\0';
             }
         }
 
@@ -303,8 +329,10 @@ int main(int argc, char* argv[]) {
             // Load target chunk
             if (rank == 0) {
                 for (int j = 0; j < j_chunk_size; j++) {
-                    strcpy(target_chunk[j].header, sequences[j_start + j].header);
-                    strcpy(target_chunk[j].sequence, sequences[j_start + j].sequence);
+                    strncpy(target_chunk[j].header, sequences[j_start + j].header, MAX_LINE_LENGTH - 1);
+                    target_chunk[j].header[MAX_LINE_LENGTH - 1] = '\0';
+                    strncpy(target_chunk[j].sequence, sequences[j_start + j].sequence, MAX_STRING_LENGTH - 1);
+                    target_chunk[j].sequence[MAX_STRING_LENGTH - 1] = '\0';
                 }
             }
 
