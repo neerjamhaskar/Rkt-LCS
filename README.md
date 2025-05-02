@@ -1,6 +1,6 @@
 # Longest Common Substring (LCS) Implementation
 
-A high-performance implementation of the Asspximate Longest Common Substring (ALCS) algorithm of multiple strings with support for k-mismatches. This project provides implementations for CPU (sequential), CUDA (GPU), and OpenMPI (parallel CPU and GPU).
+A high-performance implementation of the Approximate Longest Common Substring (ALCS) algorithm of multiple strings with support for k-mismatches. This project provides implementations for CPU (sequential), CUDA (GPU), and OpenMPI (parallel CPU and GPU).
 
 ## Features
 
