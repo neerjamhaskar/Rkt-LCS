@@ -1,0 +1,53 @@
+Combined results (GPU) with k=2, t=4, tau=5:
+===============================================
+
+Sequence 1 (1):
+  Position: 39
+  Length: 7
+  Substring: TGAGGCA
+----------------------------------------
+Sequence 2 (2):
+  Position: 13
+  Length: 8
+  Substring: TCAGCAGC
+----------------------------------------
+Sequence 3 (3):
+  Position: 6
+  Length: 8
+  Substring: GGCTTGGG
+----------------------------------------
+Sequence 4 (4):
+  Position: 23
+  Length: 8
+  Substring: AGGTCTGC
+----------------------------------------
+Sequence 5 (5):
+  Position: 32
+  Length: 8
+  Substring: AATGTCTG
+----------------------------------------
+Sequence 6 (6):
+  Position: 43
+  Length: 8
+  Substring: GAATCGCC
+----------------------------------------
+Sequence 7 (7):
+  Position: 13
+  Length: 8
+  Substring: ATCGTCAG
+----------------------------------------
+Sequence 8 (8):
+  Position: 6
+  Length: 9
+  Substring: GGCTTGGGA
+----------------------------------------
+Sequence 9 (9):
+  Position: 10
+  Length: 8
+  Substring: ATCTGCGG
+----------------------------------------
+Sequence 10 (10):
+  Position: 0
+  Length: 8
+  Substring: TTCGCCAT
+----------------------------------------

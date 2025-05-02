@@ -1,203 +1,328 @@
-#include <cuda_runtime.h>
-#include <device_launch_parameters.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
-#include "flouri_cuda.h"
+#include <cuda_runtime.h>
+#include "flouri_cpu.h"
 
-// Error checking macro for CUDA calls
+// Constants for GPU processing
 #define CUDA_CHECK(call) \
     do { \
-        cudaError_t error = call; \
-        if (error != cudaSuccess) { \
-            fprintf(stderr, "CUDA error at %s:%d: %s\n", \
-                    __FILE__, __LINE__, cudaGetErrorString(error)); \
+        cudaError_t err = call; \
+        if (err != cudaSuccess) { \
+            fprintf(stderr, "CUDA error in %s:%d: %s\n", __FILE__, __LINE__, cudaGetErrorString(err)); \
             exit(EXIT_FAILURE); \
         } \
     } while(0)
 
-// Queue structure for GPU with fixed-size array
-struct Queue {
-    int elements[32];  // Fixed size array, assuming k <= 32
-    int capacity;
-    int size;
-    int front;
-    int rear;
-};
-
-// CUDA kernel for computing k-difference LCP table
-__global__ void compute_k_lcp_kernel(
-    const char* S1,
-    const char* S2,
-    int* LCP,
-    int n,
-    int m,
-    int k
+// CUDA kernel for computing LCP max with k mismatches
+__global__ void compute_k_LCP_max_kernel(
+    const char* S1,                  // S1 sequence
+    const char* S2_buffer,           // Flattened buffer of all S2 sequences
+    const int* S2_offsets,           // Starting offset of each S2 in the buffer
+    const int* S2_lengths,           // Length of each S2 sequence
+    int num_S2,                      // Number of S2 sequences
+    int S1_length,                   // Length of S1
+    int k,                           // Max mismatches allowed
+    int tau,                         // Minimum match length
+    int* results,                    // Output buffer: (S2_idx, start1, length)
+    int* result_count                // Atomic counter for results
 ) {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    // Calculate the global thread index
+    int global_idx = blockIdx.x * blockDim.x + threadIdx.x;
     
-    if (i >= n || j >= m) return;
-
-    // Create queue for this thread
-    Queue Q;
-    Q.capacity = k;
-    Q.size = 0;
-    Q.front = 0;
-    Q.rear = -1;
-
-    int p = 0;
-    int max_length = 0;
-
-    // Compare characters and count mismatches
-    while ((i + p < n) && (j + p < m)) {
-        if (S1[i + p] != S2[j + p]) {
-            if (Q.size == k) {
-                break;  // Stop when we exceed k mismatches
+    // Each thread processes one (S2_idx, start1) pair
+    int S2_idx = global_idx / (S1_length - tau + 1);
+    int start1 = global_idx % (S1_length - tau + 1);
+    
+    // Check if this is a valid thread
+    if (S2_idx >= num_S2)
+        return;
+    
+    // Get details for this S2 sequence
+    int S2_offset = S2_offsets[S2_idx];
+    int S2_length = S2_lengths[S2_idx];
+    
+    // Skip if S2 is too short
+    if (S2_length < tau)
+        return;
+    
+    // Keep track of mismatches
+    int mismatches[64];  // Preallocated array for mismatch positions (limited to 64)
+    int mismatch_count = 0;
+    
+    // For each possible starting position in S2, find longest match
+    int longest = 0;
+    
+    for (int start2 = 0; start2 < S2_length; start2++) {
+        // Reset mismatch count for this start2 position
+        mismatch_count = 0;
+        
+        // Phase 1: Process the first tau characters
+        int p;
+        for (p = 0; p < tau; p++) {
+            if (start1 + p >= S1_length || start2 + p >= S2_length)
+                break;  // End of one of the strings
+                
+            if (S1[start1 + p] != S2_buffer[S2_offset + start2 + p]) {
+                if (mismatch_count == k)
+                    break;  // Exceeded allowed mismatches
+                    
+                if (mismatch_count < 64)  // Guard against buffer overflow
+                    mismatches[mismatch_count++] = p;
             }
-            // Enqueue
-            Q.rear = (Q.rear + 1) % k;
-            Q.elements[Q.rear] = p;
-            Q.size++;
         }
-        p++;
-        max_length = p;
+        
+        // If we couldn't process at least tau characters, discard this pair
+        if (p < tau) {
+            continue;
+        }
+        
+        // Phase 2: Continue comparing beyond the first tau characters
+        while ((start1 + p < S1_length) && (start2 + p < S2_length)) {
+            if (S1[start1 + p] != S2_buffer[S2_offset + start2 + p]) {
+                if (mismatch_count == k)
+                    break;  // Exceeded allowed mismatches
+                    
+                if (mismatch_count < 64)  // Guard against buffer overflow
+                    mismatches[mismatch_count++] = p;
+            }
+            p++;
+        }
+        
+        // Update longest match if current match is longer
+        if (p > longest) {
+            longest = p;
+        }
     }
-
-    // Store result in flattened array
-    LCP[i * m + j] = max_length;
+    
+    // If we found a match of at least tau length
+    if (longest >= tau) {
+        // Atomic add to get the next available index in the results array
+        int idx = atomicAdd(result_count, 1);
+        
+        // Store the result: S2_idx, start position, and length
+        results[idx * 3] = S2_idx;
+        results[idx * 3 + 1] = start1;
+        results[idx * 3 + 2] = longest;
+    }
 }
 
-// Main function to compute k-difference LCP table using CUDA
-extern "C" int** compute_k_lcp_cuda(const char* S1, const char* S2, int k) {
-    int n = strlen(S1);
-    int m = strlen(S2);
-
+// Host function to compute LCP max multi on GPU
+// We'll export this function with extern "C" to avoid name mangling
+extern "C" PosLenCount* compute_k_LCP_max_multi_cuda(
+    const char* S1, 
+    char** S2_array, 
+    int num_S2, 
+    int k, 
+    int tau, 
+    int r, 
+    int* result_size
+) {
+    int S1_length = r;
+    int max_possible_length = S1_length - tau + 1;
+    
+    // Validate input parameters
+    if (S1_length < tau) {
+        fprintf(stderr, "Error: S1 length (%d) is less than minimum match length (tau=%d)\n", 
+                S1_length, tau);
+        return NULL;
+    }
+    
+    // Report initial progress
+    printf("Computing LCP results (0%%)\r");
+    fflush(stdout);
+    
+    // Calculate total size needed for S2 buffer and prepare offsets and lengths
+    int* S2_lengths = (int*)malloc(num_S2 * sizeof(int));
+    int* S2_offsets = (int*)malloc(num_S2 * sizeof(int));
+    int total_S2_length = 0;
+    
+    for (int i = 0; i < num_S2; i++) {
+        S2_lengths[i] = strlen(S2_array[i]);
+        S2_offsets[i] = total_S2_length;
+        total_S2_length += S2_lengths[i];
+    }
+    
+    // Flatten S2 sequences into a single buffer
+    char* S2_buffer = (char*)malloc(total_S2_length * sizeof(char));
+    for (int i = 0; i < num_S2; i++) {
+        memcpy(S2_buffer + S2_offsets[i], S2_array[i], S2_lengths[i]);
+    }
+    
     // Allocate device memory
     char* d_S1;
-    char* d_S2;
-    int* d_LCP;
-    int** h_LCP;
-
-    // Use pinned memory for faster transfers
-    char* h_S1_pinned, *h_S2_pinned;
-
-    // Calculate total memory needed
-    size_t total_memory_needed = (n * sizeof(char)) + (m * sizeof(char)) + (n * m * sizeof(int));
-    size_t free_memory, total_memory;
-    cudaMemGetInfo(&free_memory, &total_memory);
+    char* d_S2_buffer;
+    int* d_S2_offsets;
+    int* d_S2_lengths;
+    int* d_results;  // Format: [S2_idx, start1, length, S2_idx, start1, length, ...]
+    int* d_result_count;
     
-    if (total_memory_needed > free_memory) {
-        fprintf(stderr, "Not enough GPU memory. Need %zu bytes, but only %zu available\n", 
-                total_memory_needed, free_memory);
-        return NULL;
-    }
-
-    CUDA_CHECK(cudaMallocHost(&h_S1_pinned, n * sizeof(char)));
-    CUDA_CHECK(cudaMallocHost(&h_S2_pinned, m * sizeof(char)));
-    memcpy(h_S1_pinned, S1, n * sizeof(char));
-    memcpy(h_S2_pinned, S2, m * sizeof(char));
-
-    // Allocate device memory with error checking
-    cudaError_t err;
-    err = cudaMalloc(&d_S1, n * sizeof(char));
-    if (err != cudaSuccess) {
-        fprintf(stderr, "Failed to allocate d_S1: %s\n", cudaGetErrorString(err));
-        return NULL;
-    }
+    // Estimate max possible results (worst case: every position in every S2 matches)
+    int max_results = num_S2 * max_possible_length;
     
-    err = cudaMalloc(&d_S2, m * sizeof(char));
-    if (err != cudaSuccess) {
-        cudaFree(d_S1);
-        fprintf(stderr, "Failed to allocate d_S2: %s\n", cudaGetErrorString(err));
-        return NULL;
-    }
+    // Allocate device memory
+    CUDA_CHECK(cudaMalloc((void**)&d_S1, S1_length * sizeof(char)));
+    CUDA_CHECK(cudaMalloc((void**)&d_S2_buffer, total_S2_length * sizeof(char)));
+    CUDA_CHECK(cudaMalloc((void**)&d_S2_offsets, num_S2 * sizeof(int)));
+    CUDA_CHECK(cudaMalloc((void**)&d_S2_lengths, num_S2 * sizeof(int)));
+    CUDA_CHECK(cudaMalloc((void**)&d_results, max_results * 3 * sizeof(int)));  // 3 integers per result
+    CUDA_CHECK(cudaMalloc((void**)&d_result_count, sizeof(int)));
     
-    err = cudaMalloc(&d_LCP, n * m * sizeof(int));
-    if (err != cudaSuccess) {
-        cudaFree(d_S1);
-        cudaFree(d_S2);
-        fprintf(stderr, "Failed to allocate d_LCP: %s\n", cudaGetErrorString(err));
-        return NULL;
-    }
-
-    // Allocate host memory for result
-    h_LCP = (int**)malloc(n * sizeof(int*));
-    for (int i = 0; i < n; i++) {
-        h_LCP[i] = (int*)malloc(m * sizeof(int));
-    }
-
-    // Copy input data to device using pinned memory
-    CUDA_CHECK(cudaMemcpy(d_S1, h_S1_pinned, n * sizeof(char), cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_S2, h_S2_pinned, m * sizeof(char), cudaMemcpyHostToDevice));
-
-    // Calculate grid and block dimensions
-    dim3 block_size(16, 16);  // Smaller block size for better occupancy
-    dim3 grid_size((n + block_size.x - 1) / block_size.x, 
-                   (m + block_size.y - 1) / block_size.y);
-
+    // Initialize result count to 0
+    int h_result_count = 0;
+    CUDA_CHECK(cudaMemcpy(d_result_count, &h_result_count, sizeof(int), cudaMemcpyHostToDevice));
+    
+    // Copy data to device
+    CUDA_CHECK(cudaMemcpy(d_S1, S1, S1_length * sizeof(char), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_S2_buffer, S2_buffer, total_S2_length * sizeof(char), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_S2_offsets, S2_offsets, num_S2 * sizeof(int), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_S2_lengths, S2_lengths, num_S2 * sizeof(int), cudaMemcpyHostToDevice));
+    
+    // Calculate kernel launch parameters
+    int total_threads = num_S2 * max_possible_length;
+    int threads_per_block = 256;
+    int blocks = (total_threads + threads_per_block - 1) / threads_per_block;
+    
+    printf("Launching CUDA kernel with %d blocks, %d threads per block (%d total threads)\n", 
+           blocks, threads_per_block, total_threads);
+    
     // Launch kernel
-    compute_k_lcp_kernel<<<grid_size, block_size>>>(d_S1, d_S2, d_LCP, n, m, k);
-
-    // Copy result back to host row by row
-    for (int i = 0; i < n; i++) {
-        CUDA_CHECK(cudaMemcpy(h_LCP[i], d_LCP + i * m, m * sizeof(int), cudaMemcpyDeviceToHost));
+    compute_k_LCP_max_kernel<<<blocks, threads_per_block>>>(
+        d_S1, d_S2_buffer, d_S2_offsets, d_S2_lengths,
+        num_S2, S1_length, k, tau, d_results, d_result_count
+    );
+    
+    // Check for kernel launch errors
+    CUDA_CHECK(cudaGetLastError());
+    
+    // Wait for kernel to finish
+    CUDA_CHECK(cudaDeviceSynchronize());
+    
+    // Copy result count back to host
+    CUDA_CHECK(cudaMemcpy(&h_result_count, d_result_count, sizeof(int), cudaMemcpyDeviceToHost));
+    
+    // Update progress to show completion
+    printf("Computing LCP results (100%%)\n");
+    
+    printf("CUDA kernel produced %d raw results\n", h_result_count);
+    
+    // Check if we have valid results
+    if (h_result_count == 0) {
+        fprintf(stderr, "Warning: No matches found with the given parameters\n");
+        
+        // Clean up
+        cudaFree(d_S1);
+        cudaFree(d_S2_buffer);
+        cudaFree(d_S2_offsets);
+        cudaFree(d_S2_lengths);
+        cudaFree(d_results);
+        cudaFree(d_result_count);
+        
+        free(S2_buffer);
+        free(S2_offsets);
+        free(S2_lengths);
+        
+        *result_size = 0;
+        return NULL;
     }
-
+    
+    // Allocate memory for results on host
+    int* h_results = (int*)malloc(h_result_count * 3 * sizeof(int));
+    
+    // Copy results back to host
+    CUDA_CHECK(cudaMemcpy(h_results, d_results, h_result_count * 3 * sizeof(int), cudaMemcpyDeviceToHost));
+    
     // Free device memory
-    CUDA_CHECK(cudaFree(d_S1));
-    CUDA_CHECK(cudaFree(d_S2));
-    CUDA_CHECK(cudaFree(d_LCP));
-    CUDA_CHECK(cudaFreeHost(h_S1_pinned));
-    CUDA_CHECK(cudaFreeHost(h_S2_pinned));
-
-    return h_LCP;
-}
-
-// Function to free 2D array
-extern "C" void free_2d_array(int** arr, int rows) {
-    for (int i = 0; i < rows; i++) {
-        free(arr[i]);
+    cudaFree(d_S1);
+    cudaFree(d_S2_buffer);
+    cudaFree(d_S2_offsets);
+    cudaFree(d_S2_lengths);
+    cudaFree(d_results);
+    cudaFree(d_result_count);
+    
+    // Free temporary host buffers
+    free(S2_buffer);
+    free(S2_offsets);
+    free(S2_lengths);
+    
+    // Process raw results into PosLenCount format (same as CPU version)
+    PosLenCount* counts = NULL;
+    *result_size = 0;
+    int capacity = 0;
+    
+    for (int i = 0; i < h_result_count; i++) {
+        int S2_idx = h_results[i * 3];
+        int start1 = h_results[i * 3 + 1];
+        int length = h_results[i * 3 + 2];
+        
+        // Create the key for this position-length pair
+        PosLenKey key = {start1, length};
+        
+        // Check if we need to resize the array
+        if (*result_size >= capacity) {
+            capacity = capacity == 0 ? 16 : capacity * 2;
+            counts = (PosLenCount*)realloc(counts, capacity * sizeof(PosLenCount));
+            if (!counts) {
+                fprintf(stderr, "Error: Memory allocation failed for counts array\n");
+                free(h_results);
+                return NULL;
+            }
+        }
+        
+        // Check if this position-length pair already exists
+        int found = 0;
+        for (int j = 0; j < *result_size; j++) {
+            if (counts[j].key.position == key.position && 
+                counts[j].key.length == key.length) {
+                counts[j].count++;
+                found = 1;
+                break;
+            }
+        }
+        
+        // If not found, add it as a new entry
+        if (!found) {
+            counts[*result_size].key = key;
+            counts[*result_size].count = 1;
+            (*result_size)++;
+        }
     }
-    free(arr);
+    
+    // Clean up
+    free(h_results);
+    
+    return counts;
 }
 
-// int main(int argc, char* argv[]) {
-//     if (argc != 3) {
-//         printf("Usage: %s <string1> <string2>\n", argv[0]);
-//         return 1;
-//     }
-
-//     const char* str1 = argv[1];
-//     const char* str2 = argv[2];
-//     int k = 2;  // Default k value
+// CUDA-accelerated version of Rkt_LCS_single
+//
+// For a single string S1 and an array of S2 strings, this function finds
+// the longest common substring in S1 that appears in at least t S2 strings
+// (allowing up to k mismatches). It returns a PosLenKey containing the
+// position and length of the longest such substring.
+// This version leverages the GPU implementation for better performance.
+extern "C" PosLenKey Rkt_LCS_single_cuda(const char* S1, char** S2_array, int num_S2, int k, int t, int tau, int r) {
+    int result_size;
+    PosLenCount* results = compute_k_LCP_max_multi_cuda(S1, S2_array, num_S2, k, tau, r, &result_size);
     
-//     printf("String 1: %s\n", str1);
-//     printf("String 2: %s\n", str2);
-//     printf("k: %d\n", k);
+    if (!results) {
+        fprintf(stderr, "Failed to compute multi-string LCP results on GPU\n");
+        return (PosLenKey){-1, -1};  // Return invalid key to indicate error
+    }
     
-//     // Compute k-difference LCP table
-//     int** lcp_table = compute_k_lcp_cuda(str1, str2, k);
+    // Find the longest substring that appears in at least t strings
+    PosLenKey best_key = {-1, -1};  // Initialize with invalid values
+    int max_length = 0;
     
-//     // Print the LCP table
-//     printf("\nLCP Table (k=%d):\n", k);
-//     printf("   ");
-//     for (int j = 0; j < strlen(str2); j++) {
-//         printf("%3d ", j);
-//     }
-//     printf("\n");
-
-//     for (int i = 0; i < strlen(str1); i++) {
-//         printf("%2d: ", i);
-//         for (int j = 0; j < strlen(str2); j++) {
-//             printf("%3d ", lcp_table[i][j]);
-//         }
-//         printf("\n");
-//     }
+    for (int i = 0; i < result_size; i++) {
+        if (results[i].count >= t && results[i].key.length > max_length) {
+            max_length = results[i].key.length;
+            best_key = results[i].key;
+        }
+    }
     
-//     // Free memory
-//     free_2d_array(lcp_table, strlen(str1));
+    // Clean up
+    free(results);
     
-//     return 0;
-// } 
+    return best_key;
+}
