@@ -47,25 +47,28 @@ make benchmark         # Benchmarking tool
 ### Sequential CPU Version
 
 ```bash
-./flouri_cpu <fasta_file> <k> <t> <tau>
+./flouri_cpu <fasta_file> <candidate_num> <k> <t> <tau>
 ```
 
 ### CUDA GPU Version
 
 ```bash
-./flouri_cuda <fasta_file> <k> <t> <tau>
+./flouri_cuda <fasta_file> <candidate_num> <k> <t> <tau>
+
 ```
 
 ### MPI CPU Version
 
 ```bash
 mpirun -np <num_processes> ./flouri_openmpi_cpu <fasta_file> <k> <t> <tau>
+mpirun -np 32 ./flouri_openmpi_cpu test.fasta 2 4 5
 ```
 
 ### MPI GPU Version
 
 ```bash
 mpirun -np <num_processes> ./flouri_openmpi_gpu <fasta_file> <k> <t> <tau>
+mpirun -np 32 ./flouri_openmpi_gpu test.fasta 2 4 5
 ```
 
 ### Benchmarking Tool
