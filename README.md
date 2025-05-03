@@ -61,14 +61,14 @@ make benchmark         # Benchmarking tool
 
 ```bash
 mpirun -np <num_processes> ./flouri_openmpi_cpu <fasta_file> <k> <t> <tau>
-mpirun -np 32 ./flouri_openmpi_cpu test.fasta 2 4 5
+time mpirun -np 32 ./flouri_openmpi_cpu data/10000.fasta 2 4 5
 ```
 
 ### MPI GPU Version
 
 ```bash
 mpirun -np <num_processes> ./flouri_openmpi_gpu <fasta_file> <k> <t> <tau>
-mpirun -np 32 ./flouri_openmpi_gpu test.fasta 2 4 5
+time mpirun -np 32 ./flouri_openmpi_gpu data/10000.fasta 2 4 5
 ```
 
 ### Benchmarking Tool
