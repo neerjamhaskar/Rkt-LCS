@@ -202,7 +202,7 @@ int main(int argc, char* argv[]) {
     
     // Process 0 writes the combined results
     if (rank == 0) {
-        FILE* outfile = fopen("rkt_lcs_results.txt", "w");
+        FILE* outfile = fopen("rkt_lcs_cpu_results.txt", "w");
         if (outfile) {
             fprintf(outfile, "Combined results with k=%d, t=%d, tau=%d:\n", k, t, tau);
             fprintf(outfile, "===============================================\n\n");

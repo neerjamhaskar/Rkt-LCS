@@ -254,37 +254,35 @@ extern "C" PosLenCount* compute_k_LCP_max_multi_cuda(
         int S2_idx = h_results[i * 3];
         int start1 = h_results[i * 3 + 1];
         int length = h_results[i * 3 + 2];
-        
-        // Create the key for this position-length pair
-        PosLenKey key = {start1, length};
-        
-        // Check if we need to resize the array
-        if (*result_size >= capacity) {
-            capacity = capacity == 0 ? 16 : capacity * 2;
-            counts = (PosLenCount*)realloc(counts, capacity * sizeof(PosLenCount));
-            if (!counts) {
-                fprintf(stderr, "Error: Memory allocation failed for counts array\n");
-                free(h_results);
-                return NULL;
+        // For all lengths from tau up to the maximum found
+        for (int l = tau; l <= length; l++) {
+            PosLenKey key = {start1, l};
+            // Check if we need to resize the array
+            if (*result_size >= capacity) {
+                capacity = capacity == 0 ? 16 : capacity * 2;
+                counts = (PosLenCount*)realloc(counts, capacity * sizeof(PosLenCount));
+                if (!counts) {
+                    fprintf(stderr, "Error: Memory allocation failed for counts array\n");
+                    free(h_results);
+                    return NULL;
+                }
             }
-        }
-        
-        // Check if this position-length pair already exists
-        int found = 0;
-        for (int j = 0; j < *result_size; j++) {
-            if (counts[j].key.position == key.position && 
-                counts[j].key.length == key.length) {
-                counts[j].count++;
-                found = 1;
-                break;
+            // Check if this position-length pair already exists
+            int found = 0;
+            for (int j = 0; j < *result_size; j++) {
+                if (counts[j].key.position == key.position && 
+                    counts[j].key.length == key.length) {
+                    counts[j].count++;
+                    found = 1;
+                    break;
+                }
             }
-        }
-        
-        // If not found, add it as a new entry
-        if (!found) {
-            counts[*result_size].key = key;
-            counts[*result_size].count = 1;
-            (*result_size)++;
+            // If not found, add it as a new entry
+            if (!found) {
+                counts[*result_size].key = key;
+                counts[*result_size].count = 1;
+                (*result_size)++;
+            }
         }
     }
     

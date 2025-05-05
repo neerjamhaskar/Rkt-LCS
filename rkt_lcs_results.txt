@@ -1,53 +1,1857 @@
-Combined results with k=2, t=4, tau=5:
+Combined results with k=1, t=100, tau=10:
 ===============================================
 
 Sequence 1 (1):
-  Position: 22
-  Length: 7
-  Substring: AGAATCG
+  No valid substring found
 ----------------------------------------
 Sequence 2 (2):
-  Position: 13
-  Length: 8
-  Substring: TCAGCAGC
+  Position: 33
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
 ----------------------------------------
 Sequence 3 (3):
-  Position: 6
-  Length: 8
-  Substring: GGCTTGGG
+  No valid substring found
 ----------------------------------------
 Sequence 4 (4):
-  Position: 4
-  Length: 8
-  Substring: ACGGGTTC
+  Position: 31
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
 ----------------------------------------
 Sequence 5 (5):
-  Position: 15
-  Length: 8
-  Substring: TACGGTCG
+  No valid substring found
 ----------------------------------------
 Sequence 6 (6):
-  Position: 34
-  Length: 8
-  Substring: TTTCTGAA
+  No valid substring found
 ----------------------------------------
 Sequence 7 (7):
-  Position: 3
-  Length: 8
-  Substring: GTCATCAG
+  Position: 26
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
 ----------------------------------------
 Sequence 8 (8):
-  Position: 6
-  Length: 9
-  Substring: GGCTTGGGA
+  No valid substring found
 ----------------------------------------
 Sequence 9 (9):
-  Position: 10
-  Length: 8
-  Substring: ATCTGCGG
+  No valid substring found
 ----------------------------------------
 Sequence 10 (10):
-  Position: 0
-  Length: 8
-  Substring: TTCGCCAT
+  No valid substring found
+----------------------------------------
+Sequence 11 (11):
+  No valid substring found
+----------------------------------------
+Sequence 12 (12):
+  No valid substring found
+----------------------------------------
+Sequence 13 (13):
+  No valid substring found
+----------------------------------------
+Sequence 14 (14):
+  No valid substring found
+----------------------------------------
+Sequence 15 (15):
+  No valid substring found
+----------------------------------------
+Sequence 16 (16):
+  No valid substring found
+----------------------------------------
+Sequence 17 (17):
+  Position: 28
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 18 (18):
+  No valid substring found
+----------------------------------------
+Sequence 19 (19):
+  Position: 34
+  Length: 11
+  Substring: CGAAGAGCACA
+----------------------------------------
+Sequence 20 (20):
+  No valid substring found
+----------------------------------------
+Sequence 21 (21):
+  No valid substring found
+----------------------------------------
+Sequence 22 (22):
+  No valid substring found
+----------------------------------------
+Sequence 23 (23):
+  No valid substring found
+----------------------------------------
+Sequence 24 (24):
+  Position: 37
+  Length: 14
+  Substring: AAGATCGGAAGAGC
+----------------------------------------
+Sequence 25 (25):
+  Position: 31
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 26 (26):
+  No valid substring found
+----------------------------------------
+Sequence 27 (27):
+  No valid substring found
+----------------------------------------
+Sequence 28 (28):
+  Position: 36
+  Length: 15
+  Substring: CAGATCGGAAGAGCA
+----------------------------------------
+Sequence 29 (29):
+  No valid substring found
+----------------------------------------
+Sequence 30 (30):
+  Position: 41
+  Length: 10
+  Substring: CAGATCGGAA
+----------------------------------------
+Sequence 31 (31):
+  No valid substring found
+----------------------------------------
+Sequence 32 (32):
+  No valid substring found
+----------------------------------------
+Sequence 33 (33):
+  Position: 27
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 34 (34):
+  Position: 21
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 35 (35):
+  No valid substring found
+----------------------------------------
+Sequence 36 (36):
+  Position: 36
+  Length: 15
+  Substring: AAGATCGGAAGAGCA
+----------------------------------------
+Sequence 37 (37):
+  No valid substring found
+----------------------------------------
+Sequence 38 (38):
+  Position: 37
+  Length: 14
+  Substring: GAGATCGGAAGAGC
+----------------------------------------
+Sequence 39 (39):
+  No valid substring found
+----------------------------------------
+Sequence 40 (40):
+  No valid substring found
+----------------------------------------
+Sequence 41 (41):
+  No valid substring found
+----------------------------------------
+Sequence 42 (42):
+  No valid substring found
+----------------------------------------
+Sequence 43 (43):
+  Position: 19
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 44 (44):
+  Position: 24
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 45 (45):
+  Position: 39
+  Length: 12
+  Substring: GAGATCGGAAGA
+----------------------------------------
+Sequence 46 (46):
+  No valid substring found
+----------------------------------------
+Sequence 47 (47):
+  No valid substring found
+----------------------------------------
+Sequence 48 (48):
+  Position: 22
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 49 (49):
+  No valid substring found
+----------------------------------------
+Sequence 50 (50):
+  Position: 13
+  Length: 10
+  Substring: GAAGAGCGCA
+----------------------------------------
+Sequence 51 (51):
+  Position: 23
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 52 (52):
+  No valid substring found
+----------------------------------------
+Sequence 53 (53):
+  No valid substring found
+----------------------------------------
+Sequence 54 (54):
+  No valid substring found
+----------------------------------------
+Sequence 55 (55):
+  No valid substring found
+----------------------------------------
+Sequence 56 (56):
+  No valid substring found
+----------------------------------------
+Sequence 57 (57):
+  No valid substring found
+----------------------------------------
+Sequence 58 (58):
+  Position: 39
+  Length: 12
+  Substring: GAGATCGGAAGA
+----------------------------------------
+Sequence 59 (59):
+  No valid substring found
+----------------------------------------
+Sequence 60 (60):
+  No valid substring found
+----------------------------------------
+Sequence 61 (61):
+  No valid substring found
+----------------------------------------
+Sequence 62 (62):
+  Position: 40
+  Length: 11
+  Substring: AAGATCGGAAG
+----------------------------------------
+Sequence 63 (63):
+  No valid substring found
+----------------------------------------
+Sequence 64 (64):
+  No valid substring found
+----------------------------------------
+Sequence 65 (65):
+  No valid substring found
+----------------------------------------
+Sequence 66 (66):
+  No valid substring found
+----------------------------------------
+Sequence 67 (67):
+  No valid substring found
+----------------------------------------
+Sequence 68 (68):
+  No valid substring found
+----------------------------------------
+Sequence 69 (69):
+  No valid substring found
+----------------------------------------
+Sequence 70 (70):
+  No valid substring found
+----------------------------------------
+Sequence 71 (71):
+  No valid substring found
+----------------------------------------
+Sequence 72 (72):
+  Position: 38
+  Length: 13
+  Substring: CAGATCGGAAGAG
+----------------------------------------
+Sequence 73 (73):
+  No valid substring found
+----------------------------------------
+Sequence 74 (74):
+  Position: 23
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 75 (75):
+  Position: 29
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 76 (76):
+  No valid substring found
+----------------------------------------
+Sequence 77 (77):
+  No valid substring found
+----------------------------------------
+Sequence 78 (78):
+  No valid substring found
+----------------------------------------
+Sequence 79 (79):
+  No valid substring found
+----------------------------------------
+Sequence 80 (80):
+  No valid substring found
+----------------------------------------
+Sequence 81 (81):
+  Position: 23
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 82 (82):
+  Position: 36
+  Length: 15
+  Substring: TAGATCGGAAGAGCA
+----------------------------------------
+Sequence 83 (83):
+  No valid substring found
+----------------------------------------
+Sequence 84 (84):
+  No valid substring found
+----------------------------------------
+Sequence 85 (85):
+  No valid substring found
+----------------------------------------
+Sequence 86 (86):
+  No valid substring found
+----------------------------------------
+Sequence 87 (87):
+  No valid substring found
+----------------------------------------
+Sequence 88 (88):
+  No valid substring found
+----------------------------------------
+Sequence 89 (89):
+  No valid substring found
+----------------------------------------
+Sequence 90 (90):
+  No valid substring found
+----------------------------------------
+Sequence 91 (91):
+  No valid substring found
+----------------------------------------
+Sequence 92 (92):
+  No valid substring found
+----------------------------------------
+Sequence 93 (93):
+  No valid substring found
+----------------------------------------
+Sequence 94 (94):
+  No valid substring found
+----------------------------------------
+Sequence 95 (95):
+  No valid substring found
+----------------------------------------
+Sequence 96 (96):
+  No valid substring found
+----------------------------------------
+Sequence 97 (97):
+  No valid substring found
+----------------------------------------
+Sequence 98 (98):
+  No valid substring found
+----------------------------------------
+Sequence 99 (99):
+  No valid substring found
+----------------------------------------
+Sequence 100 (100):
+  Position: 31
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 101 (101):
+  No valid substring found
+----------------------------------------
+Sequence 102 (102):
+  No valid substring found
+----------------------------------------
+Sequence 103 (103):
+  No valid substring found
+----------------------------------------
+Sequence 104 (104):
+  No valid substring found
+----------------------------------------
+Sequence 105 (105):
+  Position: 41
+  Length: 10
+  Substring: CAGATCGGAA
+----------------------------------------
+Sequence 106 (106):
+  No valid substring found
+----------------------------------------
+Sequence 107 (107):
+  No valid substring found
+----------------------------------------
+Sequence 108 (108):
+  Position: 40
+  Length: 11
+  Substring: TAGATCGGAAG
+----------------------------------------
+Sequence 109 (109):
+  No valid substring found
+----------------------------------------
+Sequence 110 (110):
+  No valid substring found
+----------------------------------------
+Sequence 111 (111):
+  Position: 27
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 112 (112):
+  Position: 16
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 113 (113):
+  No valid substring found
+----------------------------------------
+Sequence 114 (114):
+  No valid substring found
+----------------------------------------
+Sequence 115 (115):
+  No valid substring found
+----------------------------------------
+Sequence 116 (116):
+  No valid substring found
+----------------------------------------
+Sequence 117 (117):
+  No valid substring found
+----------------------------------------
+Sequence 118 (118):
+  No valid substring found
+----------------------------------------
+Sequence 119 (119):
+  Position: 35
+  Length: 16
+  Substring: GAGATCGGAAGAGCAC
+----------------------------------------
+Sequence 120 (120):
+  No valid substring found
+----------------------------------------
+Sequence 121 (121):
+  Position: 27
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 122 (122):
+  Position: 32
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 123 (123):
+  Position: 19
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 124 (124):
+  No valid substring found
+----------------------------------------
+Sequence 125 (125):
+  Position: 19
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 126 (126):
+  Position: 35
+  Length: 16
+  Substring: CAGATCGGAAGAGCAC
+----------------------------------------
+Sequence 127 (127):
+  Position: 40
+  Length: 11
+  Substring: CGAAGAGCACA
+----------------------------------------
+Sequence 128 (128):
+  No valid substring found
+----------------------------------------
+Sequence 129 (129):
+  No valid substring found
+----------------------------------------
+Sequence 130 (130):
+  No valid substring found
+----------------------------------------
+Sequence 131 (131):
+  No valid substring found
+----------------------------------------
+Sequence 132 (132):
+  No valid substring found
+----------------------------------------
+Sequence 133 (133):
+  No valid substring found
+----------------------------------------
+Sequence 134 (134):
+  No valid substring found
+----------------------------------------
+Sequence 135 (135):
+  No valid substring found
+----------------------------------------
+Sequence 136 (136):
+  No valid substring found
+----------------------------------------
+Sequence 137 (137):
+  No valid substring found
+----------------------------------------
+Sequence 138 (138):
+  No valid substring found
+----------------------------------------
+Sequence 139 (139):
+  No valid substring found
+----------------------------------------
+Sequence 140 (140):
+  No valid substring found
+----------------------------------------
+Sequence 141 (141):
+  Position: 31
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 142 (142):
+  Position: 37
+  Length: 14
+  Substring: AAGATCGGAAGAGC
+----------------------------------------
+Sequence 143 (143):
+  No valid substring found
+----------------------------------------
+Sequence 144 (144):
+  Position: 28
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 145 (145):
+  No valid substring found
+----------------------------------------
+Sequence 146 (146):
+  No valid substring found
+----------------------------------------
+Sequence 147 (147):
+  No valid substring found
+----------------------------------------
+Sequence 148 (148):
+  Position: 21
+  Length: 15
+  Substring: AATCGGAAGAGCACA
+----------------------------------------
+Sequence 149 (149):
+  Position: 20
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 150 (150):
+  Position: 20
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 151 (151):
+  Position: 28
+  Length: 16
+  Substring: AGATCGGAAGGGCACA
+----------------------------------------
+Sequence 152 (152):
+  Position: 31
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 153 (153):
+  No valid substring found
+----------------------------------------
+Sequence 154 (154):
+  No valid substring found
+----------------------------------------
+Sequence 155 (155):
+  Position: 39
+  Length: 12
+  Substring: AAGATCGGAAGA
+----------------------------------------
+Sequence 156 (156):
+  No valid substring found
+----------------------------------------
+Sequence 157 (157):
+  No valid substring found
+----------------------------------------
+Sequence 158 (158):
+  Position: 39
+  Length: 12
+  Substring: CAGATCGGAAGA
+----------------------------------------
+Sequence 159 (159):
+  Position: 28
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 160 (160):
+  No valid substring found
+----------------------------------------
+Sequence 161 (161):
+  No valid substring found
+----------------------------------------
+Sequence 162 (162):
+  No valid substring found
+----------------------------------------
+Sequence 163 (163):
+  No valid substring found
+----------------------------------------
+Sequence 164 (164):
+  No valid substring found
+----------------------------------------
+Sequence 165 (165):
+  No valid substring found
+----------------------------------------
+Sequence 166 (166):
+  Position: 28
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 167 (167):
+  Position: 25
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 168 (168):
+  Position: 39
+  Length: 12
+  Substring: TAGATCGGAAGA
+----------------------------------------
+Sequence 169 (169):
+  No valid substring found
+----------------------------------------
+Sequence 170 (170):
+  Position: 34
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 171 (171):
+  No valid substring found
+----------------------------------------
+Sequence 172 (172):
+  No valid substring found
+----------------------------------------
+Sequence 173 (173):
+  No valid substring found
+----------------------------------------
+Sequence 174 (174):
+  No valid substring found
+----------------------------------------
+Sequence 175 (175):
+  No valid substring found
+----------------------------------------
+Sequence 176 (176):
+  No valid substring found
+----------------------------------------
+Sequence 177 (177):
+  No valid substring found
+----------------------------------------
+Sequence 178 (178):
+  Position: 30
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 179 (179):
+  Position: 25
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 180 (180):
+  Position: 38
+  Length: 13
+  Substring: GAGATCGGAAGAG
+----------------------------------------
+Sequence 181 (181):
+  No valid substring found
+----------------------------------------
+Sequence 182 (182):
+  No valid substring found
+----------------------------------------
+Sequence 183 (183):
+  No valid substring found
+----------------------------------------
+Sequence 184 (184):
+  No valid substring found
+----------------------------------------
+Sequence 185 (185):
+  No valid substring found
+----------------------------------------
+Sequence 186 (186):
+  Position: 25
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 187 (187):
+  No valid substring found
+----------------------------------------
+Sequence 188 (188):
+  Position: 35
+  Length: 16
+  Substring: TAGATCGGAAGAGCAC
+----------------------------------------
+Sequence 189 (189):
+  Position: 28
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 190 (190):
+  No valid substring found
+----------------------------------------
+Sequence 191 (191):
+  No valid substring found
+----------------------------------------
+Sequence 192 (192):
+  No valid substring found
+----------------------------------------
+Sequence 193 (193):
+  No valid substring found
+----------------------------------------
+Sequence 194 (194):
+  No valid substring found
+----------------------------------------
+Sequence 195 (195):
+  Position: 37
+  Length: 14
+  Substring: GAGATCGGAAGAGC
+----------------------------------------
+Sequence 196 (196):
+  No valid substring found
+----------------------------------------
+Sequence 197 (197):
+  Position: 23
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 198 (198):
+  Position: 28
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 199 (199):
+  No valid substring found
+----------------------------------------
+Sequence 200 (200):
+  No valid substring found
+----------------------------------------
+Sequence 201 (201):
+  No valid substring found
+----------------------------------------
+Sequence 202 (202):
+  Position: 40
+  Length: 11
+  Substring: GAGATCGGAAG
+----------------------------------------
+Sequence 203 (203):
+  No valid substring found
+----------------------------------------
+Sequence 204 (204):
+  Position: 25
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 205 (205):
+  Position: 22
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 206 (206):
+  Position: 27
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 207 (207):
+  No valid substring found
+----------------------------------------
+Sequence 208 (208):
+  Position: 33
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 209 (209):
+  No valid substring found
+----------------------------------------
+Sequence 210 (210):
+  Position: 40
+  Length: 11
+  Substring: GAGATCGGAAG
+----------------------------------------
+Sequence 211 (211):
+  No valid substring found
+----------------------------------------
+Sequence 212 (212):
+  No valid substring found
+----------------------------------------
+Sequence 213 (213):
+  Position: 26
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 214 (214):
+  Position: 31
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 215 (215):
+  No valid substring found
+----------------------------------------
+Sequence 216 (216):
+  No valid substring found
+----------------------------------------
+Sequence 217 (217):
+  No valid substring found
+----------------------------------------
+Sequence 218 (218):
+  Position: 21
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 219 (219):
+  No valid substring found
+----------------------------------------
+Sequence 220 (220):
+  No valid substring found
+----------------------------------------
+Sequence 221 (221):
+  No valid substring found
+----------------------------------------
+Sequence 222 (222):
+  No valid substring found
+----------------------------------------
+Sequence 223 (223):
+  No valid substring found
+----------------------------------------
+Sequence 224 (224):
+  Position: 34
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 225 (225):
+  Position: 23
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 226 (226):
+  No valid substring found
+----------------------------------------
+Sequence 227 (227):
+  Position: 34
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 228 (228):
+  No valid substring found
+----------------------------------------
+Sequence 229 (229):
+  No valid substring found
+----------------------------------------
+Sequence 230 (230):
+  No valid substring found
+----------------------------------------
+Sequence 231 (231):
+  No valid substring found
+----------------------------------------
+Sequence 232 (232):
+  No valid substring found
+----------------------------------------
+Sequence 233 (233):
+  Position: 37
+  Length: 14
+  Substring: CAGATCGGAAGAGC
+----------------------------------------
+Sequence 234 (234):
+  No valid substring found
+----------------------------------------
+Sequence 235 (235):
+  No valid substring found
+----------------------------------------
+Sequence 236 (236):
+  No valid substring found
+----------------------------------------
+Sequence 237 (237):
+  No valid substring found
+----------------------------------------
+Sequence 238 (238):
+  No valid substring found
+----------------------------------------
+Sequence 239 (239):
+  No valid substring found
+----------------------------------------
+Sequence 240 (240):
+  No valid substring found
+----------------------------------------
+Sequence 241 (241):
+  No valid substring found
+----------------------------------------
+Sequence 242 (242):
+  No valid substring found
+----------------------------------------
+Sequence 243 (243):
+  No valid substring found
+----------------------------------------
+Sequence 244 (244):
+  Position: 21
+  Length: 15
+  Substring: GATCGGAAGAGTACA
+----------------------------------------
+Sequence 245 (245):
+  No valid substring found
+----------------------------------------
+Sequence 246 (246):
+  No valid substring found
+----------------------------------------
+Sequence 247 (247):
+  No valid substring found
+----------------------------------------
+Sequence 248 (248):
+  No valid substring found
+----------------------------------------
+Sequence 249 (249):
+  No valid substring found
+----------------------------------------
+Sequence 250 (250):
+  Position: 23
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 251 (251):
+  No valid substring found
+----------------------------------------
+Sequence 252 (252):
+  Position: 36
+  Length: 15
+  Substring: CAGATCGGAAGAGCA
+----------------------------------------
+Sequence 253 (253):
+  Position: 41
+  Length: 10
+  Substring: AAGATCGGAA
+----------------------------------------
+Sequence 254 (254):
+  Position: 40
+  Length: 11
+  Substring: AAGATCGGAAG
+----------------------------------------
+Sequence 255 (255):
+  Position: 30
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 256 (256):
+  No valid substring found
+----------------------------------------
+Sequence 257 (257):
+  No valid substring found
+----------------------------------------
+Sequence 258 (258):
+  No valid substring found
+----------------------------------------
+Sequence 259 (259):
+  No valid substring found
+----------------------------------------
+Sequence 260 (260):
+  No valid substring found
+----------------------------------------
+Sequence 261 (261):
+  No valid substring found
+----------------------------------------
+Sequence 262 (262):
+  No valid substring found
+----------------------------------------
+Sequence 263 (263):
+  No valid substring found
+----------------------------------------
+Sequence 264 (264):
+  No valid substring found
+----------------------------------------
+Sequence 265 (265):
+  No valid substring found
+----------------------------------------
+Sequence 266 (266):
+  Position: 40
+  Length: 11
+  Substring: TAGATCGGAAG
+----------------------------------------
+Sequence 267 (267):
+  Position: 37
+  Length: 14
+  Substring: TAGATCGGAAGAGC
+----------------------------------------
+Sequence 268 (268):
+  No valid substring found
+----------------------------------------
+Sequence 269 (269):
+  Position: 33
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 270 (270):
+  No valid substring found
+----------------------------------------
+Sequence 271 (271):
+  Position: 25
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 272 (272):
+  Position: 40
+  Length: 11
+  Substring: TAGATCGGAAG
+----------------------------------------
+Sequence 273 (273):
+  No valid substring found
+----------------------------------------
+Sequence 274 (274):
+  No valid substring found
+----------------------------------------
+Sequence 275 (275):
+  Position: 23
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 276 (276):
+  Position: 24
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 277 (277):
+  Position: 30
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 278 (278):
+  Position: 29
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 279 (279):
+  Position: 33
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 280 (280):
+  No valid substring found
+----------------------------------------
+Sequence 281 (281):
+  No valid substring found
+----------------------------------------
+Sequence 282 (282):
+  No valid substring found
+----------------------------------------
+Sequence 283 (283):
+  No valid substring found
+----------------------------------------
+Sequence 284 (284):
+  No valid substring found
+----------------------------------------
+Sequence 285 (285):
+  Position: 28
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 286 (286):
+  No valid substring found
+----------------------------------------
+Sequence 287 (287):
+  Position: 33
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 288 (288):
+  No valid substring found
+----------------------------------------
+Sequence 289 (289):
+  No valid substring found
+----------------------------------------
+Sequence 290 (290):
+  Position: 16
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 291 (291):
+  Position: 38
+  Length: 13
+  Substring: GAGATCGGAAGAG
+----------------------------------------
+Sequence 292 (292):
+  No valid substring found
+----------------------------------------
+Sequence 293 (293):
+  Position: 11
+  Length: 10
+  Substring: AGACCGGAAG
+----------------------------------------
+Sequence 294 (294):
+  No valid substring found
+----------------------------------------
+Sequence 295 (295):
+  Position: 34
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 296 (296):
+  Position: 31
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 297 (297):
+  Position: 29
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 298 (298):
+  No valid substring found
+----------------------------------------
+Sequence 299 (299):
+  Position: 41
+  Length: 10
+  Substring: CAGATCGGAA
+----------------------------------------
+Sequence 300 (300):
+  Position: 28
+  Length: 16
+  Substring: AGATCGAAAGAGCACA
+----------------------------------------
+Sequence 301 (301):
+  No valid substring found
+----------------------------------------
+Sequence 302 (302):
+  No valid substring found
+----------------------------------------
+Sequence 303 (303):
+  No valid substring found
+----------------------------------------
+Sequence 304 (304):
+  No valid substring found
+----------------------------------------
+Sequence 305 (305):
+  No valid substring found
+----------------------------------------
+Sequence 306 (306):
+  No valid substring found
+----------------------------------------
+Sequence 307 (307):
+  No valid substring found
+----------------------------------------
+Sequence 308 (308):
+  No valid substring found
+----------------------------------------
+Sequence 309 (309):
+  No valid substring found
+----------------------------------------
+Sequence 310 (310):
+  No valid substring found
+----------------------------------------
+Sequence 311 (311):
+  No valid substring found
+----------------------------------------
+Sequence 312 (312):
+  Position: 27
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 313 (313):
+  No valid substring found
+----------------------------------------
+Sequence 314 (314):
+  No valid substring found
+----------------------------------------
+Sequence 315 (315):
+  Position: 31
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 316 (316):
+  No valid substring found
+----------------------------------------
+Sequence 317 (317):
+  No valid substring found
+----------------------------------------
+Sequence 318 (318):
+  Position: 35
+  Length: 16
+  Substring: CAGATCGGAAGAGCAC
+----------------------------------------
+Sequence 319 (319):
+  No valid substring found
+----------------------------------------
+Sequence 320 (320):
+  Position: 38
+  Length: 13
+  Substring: TAGATCGGAAGAG
+----------------------------------------
+Sequence 321 (321):
+  Position: 36
+  Length: 15
+  Substring: TAGATCGGAAGAGCA
+----------------------------------------
+Sequence 322 (322):
+  Position: 29
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 323 (323):
+  No valid substring found
+----------------------------------------
+Sequence 324 (324):
+  No valid substring found
+----------------------------------------
+Sequence 325 (325):
+  No valid substring found
+----------------------------------------
+Sequence 326 (326):
+  Position: 37
+  Length: 14
+  Substring: TAGATCGGAAGAGC
+----------------------------------------
+Sequence 327 (327):
+  Position: 39
+  Length: 12
+  Substring: AAGATCGGAAGA
+----------------------------------------
+Sequence 328 (328):
+  No valid substring found
+----------------------------------------
+Sequence 329 (329):
+  Position: 24
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 330 (330):
+  No valid substring found
+----------------------------------------
+Sequence 331 (331):
+  Position: 30
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 332 (332):
+  No valid substring found
+----------------------------------------
+Sequence 333 (333):
+  No valid substring found
+----------------------------------------
+Sequence 334 (334):
+  No valid substring found
+----------------------------------------
+Sequence 335 (335):
+  Position: 31
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 336 (336):
+  No valid substring found
+----------------------------------------
+Sequence 337 (337):
+  Position: 36
+  Length: 15
+  Substring: TAGATCGGAAGAGCA
+----------------------------------------
+Sequence 338 (338):
+  No valid substring found
+----------------------------------------
+Sequence 339 (339):
+  Position: 26
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 340 (340):
+  No valid substring found
+----------------------------------------
+Sequence 341 (341):
+  Position: 37
+  Length: 14
+  Substring: GAGATCGGAAGAGC
+----------------------------------------
+Sequence 342 (342):
+  Position: 41
+  Length: 10
+  Substring: TAGATCGGAA
+----------------------------------------
+Sequence 343 (343):
+  No valid substring found
+----------------------------------------
+Sequence 344 (344):
+  No valid substring found
+----------------------------------------
+Sequence 345 (345):
+  No valid substring found
+----------------------------------------
+Sequence 346 (346):
+  No valid substring found
+----------------------------------------
+Sequence 347 (347):
+  Position: 40
+  Length: 11
+  Substring: AAGATCGGAAG
+----------------------------------------
+Sequence 348 (348):
+  No valid substring found
+----------------------------------------
+Sequence 349 (349):
+  No valid substring found
+----------------------------------------
+Sequence 350 (350):
+  No valid substring found
+----------------------------------------
+Sequence 351 (351):
+  No valid substring found
+----------------------------------------
+Sequence 352 (352):
+  Position: 27
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 353 (353):
+  No valid substring found
+----------------------------------------
+Sequence 354 (354):
+  Position: 39
+  Length: 12
+  Substring: TAGATCGGAAGA
+----------------------------------------
+Sequence 355 (355):
+  No valid substring found
+----------------------------------------
+Sequence 356 (356):
+  No valid substring found
+----------------------------------------
+Sequence 357 (357):
+  No valid substring found
+----------------------------------------
+Sequence 358 (358):
+  No valid substring found
+----------------------------------------
+Sequence 359 (359):
+  Position: 35
+  Length: 16
+  Substring: AGATCGGAGGAGCACA
+----------------------------------------
+Sequence 360 (360):
+  Position: 36
+  Length: 15
+  Substring: TAGATCGGAAGAGCA
+----------------------------------------
+Sequence 361 (361):
+  Position: 41
+  Length: 10
+  Substring: CAGATCGGAA
+----------------------------------------
+Sequence 362 (362):
+  Position: 38
+  Length: 13
+  Substring: TAGATCGGAAGAG
+----------------------------------------
+Sequence 363 (363):
+  Position: 27
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 364 (364):
+  Position: 33
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 365 (365):
+  No valid substring found
+----------------------------------------
+Sequence 366 (366):
+  No valid substring found
+----------------------------------------
+Sequence 367 (367):
+  No valid substring found
+----------------------------------------
+Sequence 368 (368):
+  Position: 37
+  Length: 14
+  Substring: CAGATCGGAAGAGC
+----------------------------------------
+Sequence 369 (369):
+  Position: 36
+  Length: 15
+  Substring: TAGATCGGAAGAGCA
+----------------------------------------
+Sequence 370 (370):
+  Position: 34
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 371 (371):
+  No valid substring found
+----------------------------------------
+Sequence 372 (372):
+  No valid substring found
+----------------------------------------
+Sequence 373 (373):
+  Position: 32
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 374 (374):
+  No valid substring found
+----------------------------------------
+Sequence 375 (375):
+  No valid substring found
+----------------------------------------
+Sequence 376 (376):
+  Position: 31
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 377 (377):
+  Position: 22
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 378 (378):
+  No valid substring found
+----------------------------------------
+Sequence 379 (379):
+  No valid substring found
+----------------------------------------
+Sequence 380 (380):
+  Position: 31
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 381 (381):
+  No valid substring found
+----------------------------------------
+Sequence 382 (382):
+  No valid substring found
+----------------------------------------
+Sequence 383 (383):
+  No valid substring found
+----------------------------------------
+Sequence 384 (384):
+  No valid substring found
+----------------------------------------
+Sequence 385 (385):
+  Position: 40
+  Length: 11
+  Substring: CAGATCGGAAG
+----------------------------------------
+Sequence 386 (386):
+  Position: 27
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 387 (387):
+  No valid substring found
+----------------------------------------
+Sequence 388 (388):
+  No valid substring found
+----------------------------------------
+Sequence 389 (389):
+  No valid substring found
+----------------------------------------
+Sequence 390 (390):
+  Position: 26
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 391 (391):
+  No valid substring found
+----------------------------------------
+Sequence 392 (392):
+  Position: 33
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 393 (393):
+  Position: 37
+  Length: 14
+  Substring: GAGATCGGAAGAGC
+----------------------------------------
+Sequence 394 (394):
+  No valid substring found
+----------------------------------------
+Sequence 395 (395):
+  Position: 36
+  Length: 15
+  Substring: GAGATCGGAAGAGCA
+----------------------------------------
+Sequence 396 (396):
+  No valid substring found
+----------------------------------------
+Sequence 397 (397):
+  Position: 35
+  Length: 16
+  Substring: GAGATCGGAAGAGCAC
+----------------------------------------
+Sequence 398 (398):
+  No valid substring found
+----------------------------------------
+Sequence 399 (399):
+  No valid substring found
+----------------------------------------
+Sequence 400 (400):
+  No valid substring found
+----------------------------------------
+Sequence 401 (401):
+  Position: 22
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 402 (402):
+  Position: 33
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 403 (403):
+  Position: 37
+  Length: 14
+  Substring: CAGATCGGAAGAGC
+----------------------------------------
+Sequence 404 (404):
+  No valid substring found
+----------------------------------------
+Sequence 405 (405):
+  Position: 34
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 406 (406):
+  No valid substring found
+----------------------------------------
+Sequence 407 (407):
+  No valid substring found
+----------------------------------------
+Sequence 408 (408):
+  No valid substring found
+----------------------------------------
+Sequence 409 (409):
+  No valid substring found
+----------------------------------------
+Sequence 410 (410):
+  No valid substring found
+----------------------------------------
+Sequence 411 (411):
+  No valid substring found
+----------------------------------------
+Sequence 412 (412):
+  No valid substring found
+----------------------------------------
+Sequence 413 (413):
+  No valid substring found
+----------------------------------------
+Sequence 414 (414):
+  No valid substring found
+----------------------------------------
+Sequence 415 (415):
+  No valid substring found
+----------------------------------------
+Sequence 416 (416):
+  No valid substring found
+----------------------------------------
+Sequence 417 (417):
+  Position: 21
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 418 (418):
+  No valid substring found
+----------------------------------------
+Sequence 419 (419):
+  Position: 23
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 420 (420):
+  No valid substring found
+----------------------------------------
+Sequence 421 (421):
+  Position: 24
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 422 (422):
+  Position: 31
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 423 (423):
+  No valid substring found
+----------------------------------------
+Sequence 424 (424):
+  No valid substring found
+----------------------------------------
+Sequence 425 (425):
+  No valid substring found
+----------------------------------------
+Sequence 426 (426):
+  No valid substring found
+----------------------------------------
+Sequence 427 (427):
+  No valid substring found
+----------------------------------------
+Sequence 428 (428):
+  No valid substring found
+----------------------------------------
+Sequence 429 (429):
+  Position: 37
+  Length: 14
+  Substring: GAGATCGGAAGAGC
+----------------------------------------
+Sequence 430 (430):
+  Position: 23
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 431 (431):
+  No valid substring found
+----------------------------------------
+Sequence 432 (432):
+  No valid substring found
+----------------------------------------
+Sequence 433 (433):
+  No valid substring found
+----------------------------------------
+Sequence 434 (434):
+  Position: 24
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 435 (435):
+  No valid substring found
+----------------------------------------
+Sequence 436 (436):
+  Position: 33
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 437 (437):
+  Position: 35
+  Length: 16
+  Substring: TAGATCGGAAGAGCAC
+----------------------------------------
+Sequence 438 (438):
+  No valid substring found
+----------------------------------------
+Sequence 439 (439):
+  No valid substring found
+----------------------------------------
+Sequence 440 (440):
+  No valid substring found
+----------------------------------------
+Sequence 441 (441):
+  Position: 34
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 442 (442):
+  Position: 31
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 443 (443):
+  No valid substring found
+----------------------------------------
+Sequence 444 (444):
+  No valid substring found
+----------------------------------------
+Sequence 445 (445):
+  Position: 38
+  Length: 13
+  Substring: TAGATCGGAAGAG
+----------------------------------------
+Sequence 446 (446):
+  No valid substring found
+----------------------------------------
+Sequence 447 (447):
+  Position: 37
+  Length: 14
+  Substring: CAGATCGGAAGAGC
+----------------------------------------
+Sequence 448 (448):
+  No valid substring found
+----------------------------------------
+Sequence 449 (449):
+  No valid substring found
+----------------------------------------
+Sequence 450 (450):
+  No valid substring found
+----------------------------------------
+Sequence 451 (451):
+  No valid substring found
+----------------------------------------
+Sequence 452 (452):
+  Position: 23
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 453 (453):
+  No valid substring found
+----------------------------------------
+Sequence 454 (454):
+  No valid substring found
+----------------------------------------
+Sequence 455 (455):
+  No valid substring found
+----------------------------------------
+Sequence 456 (456):
+  Position: 20
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 457 (457):
+  Position: 39
+  Length: 12
+  Substring: GAGATCGGAAGA
+----------------------------------------
+Sequence 458 (458):
+  Position: 33
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 459 (459):
+  No valid substring found
+----------------------------------------
+Sequence 460 (460):
+  Position: 34
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 461 (461):
+  No valid substring found
+----------------------------------------
+Sequence 462 (462):
+  Position: 32
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 463 (463):
+  No valid substring found
+----------------------------------------
+Sequence 464 (464):
+  Position: 39
+  Length: 12
+  Substring: CAGATCGGAAGA
+----------------------------------------
+Sequence 465 (465):
+  Position: 41
+  Length: 10
+  Substring: CAGATCGGAA
+----------------------------------------
+Sequence 466 (466):
+  Position: 37
+  Length: 14
+  Substring: GAGATCGGAAGAGC
+----------------------------------------
+Sequence 467 (467):
+  Position: 20
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 468 (468):
+  No valid substring found
+----------------------------------------
+Sequence 469 (469):
+  No valid substring found
+----------------------------------------
+Sequence 470 (470):
+  No valid substring found
+----------------------------------------
+Sequence 471 (471):
+  Position: 39
+  Length: 12
+  Substring: AAGATCGGAAGA
+----------------------------------------
+Sequence 472 (472):
+  No valid substring found
+----------------------------------------
+Sequence 473 (473):
+  No valid substring found
+----------------------------------------
+Sequence 474 (474):
+  No valid substring found
+----------------------------------------
+Sequence 475 (475):
+  Position: 34
+  Length: 16
+  Substring: AGACCGGAAGAGCACA
+----------------------------------------
+Sequence 476 (476):
+  No valid substring found
+----------------------------------------
+Sequence 477 (477):
+  No valid substring found
+----------------------------------------
+Sequence 478 (478):
+  No valid substring found
+----------------------------------------
+Sequence 479 (479):
+  No valid substring found
+----------------------------------------
+Sequence 480 (480):
+  No valid substring found
+----------------------------------------
+Sequence 481 (481):
+  No valid substring found
+----------------------------------------
+Sequence 482 (482):
+  No valid substring found
+----------------------------------------
+Sequence 483 (483):
+  No valid substring found
+----------------------------------------
+Sequence 484 (484):
+  No valid substring found
+----------------------------------------
+Sequence 485 (485):
+  Position: 32
+  Length: 17
+  Substring: CAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 486 (486):
+  No valid substring found
+----------------------------------------
+Sequence 487 (487):
+  Position: 2
+  Length: 11
+  Substring: TCGGTAGAGCA
+----------------------------------------
+Sequence 488 (488):
+  Position: 33
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 489 (489):
+  Position: 36
+  Length: 15
+  Substring: GAGATCGGAAGAGCA
+----------------------------------------
+Sequence 490 (490):
+  No valid substring found
+----------------------------------------
+Sequence 491 (491):
+  Position: 37
+  Length: 14
+  Substring: TAGATCGGAAGAGC
+----------------------------------------
+Sequence 492 (492):
+  Position: 35
+  Length: 16
+  Substring: AAGATCGGAAGAGCAC
+----------------------------------------
+Sequence 493 (493):
+  Position: 32
+  Length: 17
+  Substring: AAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 494 (494):
+  No valid substring found
+----------------------------------------
+Sequence 495 (495):
+  No valid substring found
+----------------------------------------
+Sequence 496 (496):
+  No valid substring found
+----------------------------------------
+Sequence 497 (497):
+  No valid substring found
+----------------------------------------
+Sequence 498 (498):
+  No valid substring found
+----------------------------------------
+Sequence 499 (499):
+  Position: 28
+  Length: 17
+  Substring: TAGATCGGAAGAGCACA
+----------------------------------------
+Sequence 500 (500):
+  Position: 23
+  Length: 17
+  Substring: GAGATCGGAAGAGCACA
 ----------------------------------------
