@@ -22,6 +22,14 @@ int main(int argc, char* argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
+    // Select GPU based on MPI rank
+    int device_count;
+    cudaGetDeviceCount(&device_count);
+    if (device_count > 0) {
+        cudaSetDevice(rank % device_count);
+        printf("Process %d using GPU %d\n", rank, rank % device_count);
+    }
+
     // Check command line arguments (only in rank 0)
     if (rank == 0) {
         printf("DEBUG: Starting program with %d processes\n", size);
