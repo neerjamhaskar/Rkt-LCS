@@ -240,6 +240,7 @@ int main(int argc, char* argv[]) {
     free_fasta(sequences, num_sequences);
     MPI_Type_free(&result_type);
 
+    
     // printf("Process %d: Finalizing\n", rank);
     MPI_Finalize();
     return 0;

@@ -7,6 +7,8 @@ extern "C" {
 #include <cuda_runtime.h>
 #include "flouri_cpu.h"
 
+// This file is exactly as same as flouri_openmpi_cpu.c, except that it uses CUDA implementation,
+// and calls Rkt_LCS_single_cuda instead of Rkt_LCS_single.
 // Structure to hold the result for each sequence
 typedef struct {
     int seq_num;          // Original sequence number (1-based)

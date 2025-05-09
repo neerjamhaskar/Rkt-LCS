@@ -107,7 +107,7 @@ __global__ void compute_k_LCP_max_kernel(
     }
 }
 
-// Host function to compute LCP max multi on GPU
+// Host function to compute MaxLCP_k multi on GPU
 // We'll export this function with extern "C" to avoid name mangling
 extern "C" PosLenCount* compute_k_LCP_max_multi_cuda(
     const char* S1, 
@@ -295,7 +295,7 @@ extern "C" PosLenCount* compute_k_LCP_max_multi_cuda(
 // CUDA-accelerated version of Rkt_LCS_single
 //
 // For a single string S1 and an array of S2 strings, this function finds
-// the longest common substring in S1 that appears in at least t S2 strings
+// the Rkt-LCS in S1 (candidate) that appears in at least t S2 strings
 // (allowing up to k mismatches). It returns a PosLenKey containing the
 // position and length of the longest such substring.
 // This version leverages the GPU implementation for better performance.

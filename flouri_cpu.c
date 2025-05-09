@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Queue structure and operations remain the same
+// Queue structure and operations
 typedef struct {
     int* elements;
     int capacity;
@@ -97,13 +97,12 @@ void free2DArray(int** arr, int rows) {
 
 
 
-// compute_k_LCP_max (memory improved, with tau)
-// Computes a longest-common-prefix (LCP) array between S1 and S2,
+// Computes a MaxLCP_k array between S1 and S2,
 // allowing up to k mismatches. An extra parameter tau is used so that
 // starting positions in S1 with less than tau characters remaining are discarded.
 // Moreover, the first tau characters are compared normally (mismatches counted)
 // and only if they are processed (i.e. p reaches tau) do we continue.
-// Thus, the returned LCP length will include those tau characters.
+// Thus, the returned length will include those tau characters.
 int* compute_k_LCP_max(const char* S1, const char* S2, int k, int tau, int r) {
     int n = r;
     int m = strlen(S2);
@@ -200,7 +199,7 @@ typedef struct {
 } PosLenCount;
 
 // compute_k_LCP_max_multi
-// Computes a longest-common-prefix (LCP) array between S1 and multiple S2 strings,
+// Computes a MaxLCP array between S1 and multiple S2 strings,
 // allowing up to k mismatches. For each position in S1, tracks how many S2 strings
 // have a common substring of each length.
 PosLenCount* compute_k_LCP_max_multi(const char* S1, char** S2_array, int num_S2, int k, int tau, int r, int* result_size) {
@@ -278,7 +277,7 @@ PosLenCount* compute_k_LCP_max_multi(const char* S1, char** S2_array, int num_S2
             }
         }
         
-        // Free the LCP max array for this S2 string
+        // Free the MaxLCP array for this S2 string
         free(LCP_max);
     }
     
@@ -292,7 +291,7 @@ PosLenCount* compute_k_LCP_max_multi(const char* S1, char** S2_array, int num_S2
 // Rkt_LCS_single
 //
 // For a single string S1 and an array of S2 strings, this function finds
-// the longest common substring in S1 that appears in at least t S2 strings
+// the Rkt_LCS of S1 (candidate) that appears in at least t S2 strings
 // (allowing up to k mismatches). It returns a PosLenKey containing the
 // position and length of the longest such substring.
 PosLenKey Rkt_LCS_single(const char* S1, char** S2_array, int num_S2, int k, int t, int tau, int r) {
