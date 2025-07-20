@@ -85,17 +85,10 @@ time mpirun -np 32 ./flouri_openmpi_gpu data/10000.fasta 2 4 5
 - `tau`: Minimum match length
 - `verbose`: (Optional) Display detailed output
 
-## Performance
-
-The CUDA implementation offers significant speedup over the sequential CPU version, especially for large datasets. Benchmark results can be found in the `benchmark_results.csv` file.
-
 ## Algorithm Details
 
-The implementation is based on the MaxLCP_k algorithm. The core components include:
 
-1. **MaxLCP_k Computation**: Calculating the longest common prefix with up to k mismatches
-2. **Multi-Sequence Search**: Finding common substrings across multiple sequences
-3. **Rkt-LCS Algorithm**: Given finite integers $k, t, m \in \mathbb{N}$, $t \leq m$, and a set $\s{S} = \{s_1, s_2, \dots, s_m\}$ of strings, find the longest substring $u$ of any string in $S$ such that there exists a subset $S' \subseteq S$ of size $t$ of substrings $u'_i$ of length $|u|$ satisfying $d_H(u, u'_i) \leq k$.
+**Rkt-LCS Algorithm**: Given finite integers $k, t, m \in \mathbb{N}$, $t \leq m$, and a set $\s{S} = \{s_1, s_2, \dots, s_m\}$ of strings, find the longest substring $u$ of any string in $S$ such that there exists a subset $S' \subseteq S$ of size $t$ of substrings $u'_i$ of length $|u|$ satisfying $d_H(u, u'_i) \leq k$.
 
 ## License
 
@@ -107,11 +100,10 @@ If you use this software in your research or refer to our algorithm, please cite
 
 ```
 @inproceedings{rktLCS2023,
-  title     = {Restricted $kt$-Longest Common Substring of multiple strings: Experimental Evaluation},
-  booktitle = {Prague Stringology Conference},
-  author    = {},
-  year      = {?},
-  publisher = {Prague Stringology Conference}
+  title     = {Approximate Longest Common Substring of Multiple Strings: Experimental Evaluation},
+  author    = {Hasibi, Hamed and Mhaskar, Neerja and Smyth, WF},
+  booktitle = {Proceedings of the Prague Stringology Conference},
+  year      = {2025}
 }
 ```
 
